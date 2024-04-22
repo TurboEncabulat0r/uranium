@@ -238,6 +238,9 @@ namespace uranium {
         Triangle* t3 = new Triangle(vec3(6, 0, 0), vec3(1, 1, 1));
         Triangle* t4 = new Triangle(vec3(-3, 0, 0), vec3(1, 0, 1));
         Triangle* t5 = new Triangle(vec3(-6, 0, 0), vec3(0, 1, 1));
+
+        quad* q1 = new quad();
+        triangle* t6 = new triangle();
         
     }
 
@@ -250,12 +253,18 @@ namespace uranium {
         for (int i = 0; i < tris.size(); i++) {
             addTri(tris[i]->getTriangle());
 		}
+
+        std::vector<tri> tris = Uranium_RenderTriangles();
+        for (int i = 0; i < tris.size(); i++) {
+            addTri(tris[i]);
+        }
+
     }
 
     void imgui() {
         ImGui::Begin("Uranium OpenGL impl");
-        ImGui::Text("triangles: %d", triangles.size());
-        ImGui::Text("tris: %d", tris.size());
+        ImGui::Text("tris: %d", triangles.size());
+        ImGui::Text("Triangles: %d", tris.size());
         ImGui::Text("vertex buffer: %d", vertexBuffer);
         ImGui::Text("vertex array: %d", vertexarray);
         ImGui::End();

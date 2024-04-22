@@ -55,7 +55,7 @@ namespace uranium {
     };
 
     struct tri {
-        vertex v1, v2, v3;
+        vertex verts[3];
 
         tri();
 
@@ -66,18 +66,51 @@ namespace uranium {
 
     class renderable {
     public:
+
         std::vector<tri> tris;
 
         renderable();
 
         void addTri(tri t);
 
-        void* getData();
+        virtual std::vector<tri> getTransformedTris();
+
+        virtual void* getData();
     };
 
-    class Square : public renderable {
-        Square();
+    class primitive : public renderable {
+    public:
+        vec3 position;
+        vec3 scale;
+        vec3 rotation;
+        vec3 color;
+
+        primitive();
+
+        void setPosition(vec3 pos);
+
+        void setScale(vec3 scale);
+
+        void setRotation(vec3 rotation);
+
+        void* getData();
+
+        std::vector<tri> getTransformedTris();
+
+        glm::mat4 getTransform();
     };
+
+    class quad : public primitive {
+    public:
+        quad();
+    };
+
+    class triangle : public primitive {
+    public:
+		triangle();
+	};
+
+    std::vector<tri> Uranium_RenderTriangles();
 
     std::vector<renderable*> getRenderables();
 
