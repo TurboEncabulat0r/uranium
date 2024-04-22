@@ -24,6 +24,7 @@
     <ProjectGuid>{daa968bf-e89c-4a53-b435-ccd49ae07d08}</ProjectGuid>
     <RootNamespace>godmfdam</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>uranium</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

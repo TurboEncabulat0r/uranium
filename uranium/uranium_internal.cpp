@@ -102,31 +102,60 @@ namespace uranium {
     }
 
     tri::tri() {
-        vertacies.push_back(vertex(0, 1, 0));
-        vertacies.push_back(vertex(1, -1, 0));
-        vertacies.push_back(vertex(-1, -1, 0));
+        v1 = vertex(0, 1, 0);
+        v2 = vertex(1, -1, 0);
+        v3 = vertex(-1, -1, 0);
     }
 
     tri::tri(vertex v1, vertex v2, vertex v3) {
-        vertacies.push_back(v1);
-        vertacies.push_back(v2);
-        vertacies.push_back(v3);
+        this->v1 = v1;
+		this->v2 = v2;
+		this->v3 = v3;
     }
 
+    void* getData(tri* t) {
+        // returns the data of v1, v2, and v3 in a contiguous block of memory
+        void* data = malloc(sizeof(vertex) * 3);
+        memcpy(data, &t->v1, sizeof(vertex));
+        memcpy((char*)data + sizeof(vertex), &t->v2, sizeof(vertex));
+        memcpy((char*)data + sizeof(vertex) * 2, &t->v3, sizeof(vertex));
+        return data;
+    }
 
+    std::vector<renderable*> renderables = {};
 
 
     renderable::renderable() {
         tris = {};
+        renderables.push_back(this);
 	}
 
     void renderable::addTri(tri t) {
-        tris.push_back(t);
-    }
+		tris.push_back(t);
+	}
 
     void* renderable::getData() {
         return tris.data();
     }
+
+    Square::Square() {
+        tri t1 = tri(vertex(-1, 1, 0), vertex(1, 1, 0), vertex(-1, -1, 0));
+        tri t2 = tri(vertex(1, 1, 0), vertex(1, -1, 0), vertex(-1, -1, 0));
+        addTri(t1);
+        addTri(t2);
+		renderables.push_back(this);
+	}
+
+    bool isConvex(const vertex& prev, const vertex& current, const vertex& next) {
+		glm::vec2 edge1 = glm::vec2(current.position.x - prev.position.x, current.position.y - prev.position.y);
+		glm::vec2 edge2 = glm::vec2(next.position.x - current.position.x, next.position.y - current.position.y);
+		float crossProduct = edge1.x * edge2.y - edge1.y * edge2.x;
+		return crossProduct >= 0; // Convex if cross product is non-negative
+	}
+    
+    std::vector<renderable*> getRenderables() {
+		return renderables;
+	}
 
     //bool isConvex(const vertex& prev, const vertex& current, const vertex& next) {
     //    glm::vec2 edge1 = current.position - prev.position;

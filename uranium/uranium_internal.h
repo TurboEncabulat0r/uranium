@@ -55,13 +55,14 @@ namespace uranium {
     };
 
     struct tri {
-        std::vector<vertex> vertacies;
+        vertex v1, v2, v3;
 
         tri();
 
         tri(vertex v1, vertex v2, vertex v3);
     };
 
+    #define URANIUM_VERTEX_SIZE sizeof(float) * 6
 
     class renderable {
     public:
@@ -74,6 +75,13 @@ namespace uranium {
         void* getData();
     };
 
+    class Square : public renderable {
+        Square();
+    };
+
+    std::vector<renderable*> getRenderables();
 
     std::vector<tri> tessellate(const std::vector<vertex>);
+
+    void* getData(tri* t);
 }

@@ -44,6 +44,8 @@ namespace uranium {
 
     void addTriangle(Triangle* t);
 
+    
+
     class Triangle {
     public:
         // center of the triangle
@@ -288,9 +290,9 @@ namespace uranium {
         glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 
         // Update the vertex buffer with the vertex data for the batch
-        glBufferData(GL_ARRAY_BUFFER, batch.tris.size() * sizeof(tri) * 3, batch.tris.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, batch.tris.size() * (sizeof(tri)), batch.tris.data(), GL_DYNAMIC_DRAW);
 
-        // Set up the vertex attribute pointers (assuming vertex layout is consistent)
+        // Set the vertex attribute pointers
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(sizeof(vec3)));
@@ -308,7 +310,7 @@ namespace uranium {
             glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
             glBindVertexArray(vertexarray);
 
-			glBufferData(GL_ARRAY_BUFFER, triangles[i].vertacies.size() * sizeof(vertex), triangles[i].vertacies.data(), GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(tri), getData(&triangles[i]), GL_STATIC_DRAW);
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 
             glBindVertexArray(0);
