@@ -39,25 +39,25 @@
     <ClCompile Include="uranium\helpers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\OneDrive\Documents\libraries\imgui-master\imgui.cpp">
+    <ClCompile Include="include\imgui_include\imgui_demo.cpp">
       <Filter>Resource Files\dearimgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\OneDrive\Documents\libraries\imgui-master\imgui_demo.cpp">
+    <ClCompile Include="include\imgui_include\imgui_draw.cpp">
       <Filter>Resource Files\dearimgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\OneDrive\Documents\libraries\imgui-master\imgui_draw.cpp">
+    <ClCompile Include="include\imgui_include\imgui_tables.cpp">
       <Filter>Resource Files\dearimgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\OneDrive\Documents\libraries\imgui-master\imgui_tables.cpp">
+    <ClCompile Include="include\imgui_include\imgui_widgets.cpp">
       <Filter>Resource Files\dearimgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\OneDrive\Documents\libraries\imgui-master\imgui_widgets.cpp">
+    <ClCompile Include="include\imgui_include\imgui.cpp">
       <Filter>Resource Files\dearimgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\OneDrive\Documents\libraries\imgui-master\backends\imgui_impl_glfw.cpp">
+    <ClCompile Include="include\imgui_include\backends\imgui_impl_glfw.cpp">
       <Filter>Resource Files\dearimgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\OneDrive\Documents\libraries\imgui-master\backends\imgui_impl_opengl3.cpp">
+    <ClCompile Include="include\imgui_include\backends\imgui_impl_opengl3.cpp">
       <Filter>Resource Files\dearimgui</Filter>
     </ClCompile>
   </ItemGroup>
@@ -77,31 +77,31 @@
     <ClInclude Include="uranium\helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\OneDrive\Documents\libraries\imgui-master\imconfig.h">
+    <ClInclude Include="include\imgui_include\imgui.h">
       <Filter>Resource Files\dearimgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\OneDrive\Documents\libraries\imgui-master\imgui.h">
+    <ClInclude Include="include\imgui_include\imgui_internal.h">
       <Filter>Resource Files\dearimgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\OneDrive\Documents\libraries\imgui-master\imgui_internal.h">
+    <ClInclude Include="include\imgui_include\imstb_rectpack.h">
       <Filter>Resource Files\dearimgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\OneDrive\Documents\libraries\imgui-master\imstb_rectpack.h">
+    <ClInclude Include="include\imgui_include\imstb_textedit.h">
       <Filter>Resource Files\dearimgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\OneDrive\Documents\libraries\imgui-master\imstb_textedit.h">
+    <ClInclude Include="include\imgui_include\imstb_truetype.h">
       <Filter>Resource Files\dearimgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\OneDrive\Documents\libraries\imgui-master\imstb_truetype.h">
+    <ClInclude Include="include\imgui_include\imconfig.h">
       <Filter>Resource Files\dearimgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\OneDrive\Documents\libraries\imgui-master\backends\imgui_impl_glfw.h">
+    <ClInclude Include="include\imgui_include\backends\imgui_impl_glfw.h">
       <Filter>Resource Files\dearimgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\OneDrive\Documents\libraries\imgui-master\backends\imgui_impl_opengl3.h">
+    <ClInclude Include="include\imgui_include\backends\imgui_impl_opengl3.h">
       <Filter>Resource Files\dearimgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\OneDrive\Documents\libraries\imgui-master\backends\imgui_impl_opengl3_loader.h">
+    <ClInclude Include="include\imgui_include\backends\imgui_impl_opengl3_loader.h">
       <Filter>Resource Files\dearimgui</Filter>
     </ClInclude>
   </ItemGroup>

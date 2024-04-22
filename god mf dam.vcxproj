@@ -105,12 +105,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_BUILD</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\trb0e\OneDrive\Documents\libraries\glfw-3.4.bin.WIN64\include;C:\Users\trb0e\OneDrive\Documents\libraries\glew-2.1.0\include;C:\Users\trb0e\OneDrive\Documents\libraries\imgui-master;C:\Users\trb0e\OneDrive\Documents\libraries\glm-1.0.1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include\glew_include;$(ProjectDir)include\glfw_include;$(ProjectDir)include\imgui_include;$(ProjectDir)include\glm_include;C:\Users\trb0e\OneDrive\Documents\libraries\glfw-3.4.bin.WIN64\include;C:\Users\trb0e\OneDrive\Documents\libraries\glew-2.1.0\include;C:\Users\trb0e\OneDrive\Documents\libraries\imgui-master;C:\Users\trb0e\OneDrive\Documents\libraries\glm-1.0.1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\trb0e\OneDrive\Documents\libraries\glew-2.1.0\lib\Release\x64;C:\Users\trb0e\OneDrive\Documents\libraries\glfw-3.4.bin.WIN64\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)lib;C:\Users\trb0e\OneDrive\Documents\libraries\glew-2.1.0\lib\Release\x64;C:\Users\trb0e\OneDrive\Documents\libraries\glfw-3.4.bin.WIN64\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -121,24 +121,24 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_BUILD</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>H:\libraries\glfw-3.4.bin.WIN64\include;H:\libraries\glew-2.1.0\include;H:\libraries\imgui-master;H:\libraries\glm-1.0.1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include\glew_include;$(ProjectDir)include\glfw_include;$(ProjectDir)include\imgui_include;$(ProjectDir)include\glm_include;H:\libraries\glfw-3.4.bin.WIN64\include;H:\libraries\glew-2.1.0\include;H:\libraries\imgui-master;H:\libraries\glm-1.0.1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>H:\libraries\glew-2.1.0\lib\Release\x64;H:\libraries\glfw-3.4.bin.WIN64\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)lib;H:\libraries\glew-2.1.0\lib\Release\x64;H:\libraries\glfw-3.4.bin.WIN64\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\OneDrive\Documents\libraries\imgui-master\backends\imgui_impl_glfw.cpp" />
-    <ClCompile Include="..\..\OneDrive\Documents\libraries\imgui-master\backends\imgui_impl_opengl3.cpp" />
-    <ClCompile Include="..\..\OneDrive\Documents\libraries\imgui-master\imgui.cpp" />
-    <ClCompile Include="..\..\OneDrive\Documents\libraries\imgui-master\imgui_demo.cpp" />
-    <ClCompile Include="..\..\OneDrive\Documents\libraries\imgui-master\imgui_draw.cpp" />
-    <ClCompile Include="..\..\OneDrive\Documents\libraries\imgui-master\imgui_tables.cpp" />
-    <ClCompile Include="..\..\OneDrive\Documents\libraries\imgui-master\imgui_widgets.cpp" />
+    <ClCompile Include="include\imgui_include\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="include\imgui_include\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="include\imgui_include\imgui.cpp" />
+    <ClCompile Include="include\imgui_include\imgui_demo.cpp" />
+    <ClCompile Include="include\imgui_include\imgui_draw.cpp" />
+    <ClCompile Include="include\imgui_include\imgui_tables.cpp" />
+    <ClCompile Include="include\imgui_include\imgui_widgets.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="uranium\helpers.cpp" />
     <ClCompile Include="uranium\imgui_impl.cpp" />
@@ -147,15 +147,15 @@
     <ClCompile Include="uranium\uranium_opengl.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\OneDrive\Documents\libraries\imgui-master\backends\imgui_impl_glfw.h" />
-    <ClInclude Include="..\..\OneDrive\Documents\libraries\imgui-master\backends\imgui_impl_opengl3.h" />
-    <ClInclude Include="..\..\OneDrive\Documents\libraries\imgui-master\backends\imgui_impl_opengl3_loader.h" />
-    <ClInclude Include="..\..\OneDrive\Documents\libraries\imgui-master\imconfig.h" />
-    <ClInclude Include="..\..\OneDrive\Documents\libraries\imgui-master\imgui.h" />
-    <ClInclude Include="..\..\OneDrive\Documents\libraries\imgui-master\imgui_internal.h" />
-    <ClInclude Include="..\..\OneDrive\Documents\libraries\imgui-master\imstb_rectpack.h" />
-    <ClInclude Include="..\..\OneDrive\Documents\libraries\imgui-master\imstb_textedit.h" />
-    <ClInclude Include="..\..\OneDrive\Documents\libraries\imgui-master\imstb_truetype.h" />
+    <ClInclude Include="include\imgui_include\backends\imgui_impl_glfw.h" />
+    <ClInclude Include="include\imgui_include\backends\imgui_impl_opengl3.h" />
+    <ClInclude Include="include\imgui_include\backends\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="include\imgui_include\imconfig.h" />
+    <ClInclude Include="include\imgui_include\imgui.h" />
+    <ClInclude Include="include\imgui_include\imgui_internal.h" />
+    <ClInclude Include="include\imgui_include\imstb_rectpack.h" />
+    <ClInclude Include="include\imgui_include\imstb_textedit.h" />
+    <ClInclude Include="include\imgui_include\imstb_truetype.h" />
     <ClInclude Include="uranium\helpers.h" />
     <ClInclude Include="uranium\imgui_impl.h" />
     <ClInclude Include="uranium\uranium.h" />
