@@ -21,9 +21,10 @@ float randomFloat(float min, float max) {
 	std::uniform_real_distribution<float> dis(min, max);
 	return dis(gen);
 }
-
+int num = 3;
 void onImgui() {
-
+	// adds a slider to change the number of triangles
+	ImGui::SliderInt("Number of Triangles", &num, 1, 100);
 }
 
 uranium::vec3 getRandomPos() {
@@ -34,22 +35,30 @@ float getScale() {
 	return randomFloat(0.1f, 0.5f);
 }
 std::vector<uranium::triangle* > triangles;
-int num = 50;
+
+uranium::triangle* spawnTriangle() {
+	uranium::triangle* tri = new uranium::triangle();
+	tri->position = getRandomPos();
+	tri->color = uranium::vec3(randomFloat(0.0f, 1.0f), randomFloat(0.0f, 1.0f), randomFloat(0.0f, 1.0f));
+	float scale = getScale();
+	tri->scale = uranium::vec3(scale, scale, 1);
+	return tri;
+}
+
 void onRender() 
 {
-	
-	
-	if (triangles.size() == 0) {
-		for (int i = 0; i < num; i++) {
-			uranium::triangle* tri = new uranium::triangle();
-			tri->position = getRandomPos();
-			tri->color = uranium::vec3(randomFloat(0.0f, 1.0f), randomFloat(0.0f, 1.0f), randomFloat(0.0f, 1.0f));
-			float scale = getScale();
-			tri->scale = uranium::vec3(scale, scale, 1);
-			triangles.push_back(tri);
-			uranium::addRenderable(tri);
-		}
-		uranium::log("added triangles");
+
+	while (triangles.size() > num) {
+		uranium::triangle* tri = triangles.back();
+		triangles.pop_back();
+		uranium::removeRenderable(tri);
+		delete tri;
+	}
+
+	while (triangles.size() < num) {
+		uranium::triangle* tri = spawnTriangle();
+		triangles.push_back(tri);
+		uranium::addRenderable(tri);
 	}
 }
 

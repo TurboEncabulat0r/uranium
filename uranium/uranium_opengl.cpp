@@ -16,11 +16,12 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include "shader.h"
+
 int16_t URANIUM_RENDER_WIDTH = 1280;
 int16_t URANIUM_RENDER_HEIGHT = 720;
 
 namespace uranium {
-
 
 	static GLFWwindow* window;
 
@@ -65,62 +66,8 @@ namespace uranium {
         return world * 0.1f;
 	}
    
-
     void addTri(tri t) {
         triangles.push_back(t);
-    }
-
-    // Compile shader function
-    GLuint compileShader(GLenum shaderType, const char* shaderSource) {
-        GLuint shader = glCreateShader(shaderType);
-        int k = 0;
-        glShaderSource(shader, 1, &shaderSource, NULL);
-        std::cout << "Shader source: " << shaderSource << std::endl;
-        glCompileShader(shader);
-
-        // Check for compilation errors
-        GLint success;
-        glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
- 
-        if (!success) {
-            char infoLog[512];
-            glGetShaderInfoLog(shader, 512, NULL, infoLog);
-            std::cerr << "Shader compilation failed: " << infoLog << std::endl;
-        }
-
-        return shader;
-    }
-
-    // Create shader program function
-    GLuint createShaderProgram(const char* vertexShaderSource, const char* fragmentShaderSource) {
-        // Compile vertex and fragment shaders
-
-        GLuint vertexShader = compileShader(GL_VERTEX_SHADER, vertexShaderSource);
-        GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
-
-  
-        // Link shaders into a program
-        GLuint shaderProgram = glCreateProgram();
-        glAttachShader(shaderProgram, vertexShader);
-        glAttachShader(shaderProgram, fragmentShader);
-        glLinkProgram(shaderProgram);
-
-        // Check for linking errors
-        GLint success;
-        glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-        if (!success) {
-            char infoLog[512];
-            glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-            std::cerr << "Shader linking failed: " << infoLog << std::endl;
-        }
-
-        // Delete the shaders as they're linked into our program now and no longer necessary
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
-
-        std::cout << "Shader program created successfully" << std::endl;
-
-        return shaderProgram;
     }
 
     static void glfw_error_callback(int error, const char* description)
@@ -198,7 +145,7 @@ namespace uranium {
 
         /* Make the window's context current */
         glfwMakeContextCurrent(window);
-        glfwSwapInterval(1); // Enable vsync
+        glfwSwapInterval(0); // Enable vsync
         InitializeImGUI(window, glsl_version);
         GLenum err = glewInit();
         if (!err) {}
@@ -284,6 +231,7 @@ namespace uranium {
 
     void RenderTriangles() {
         triangles.clear();
+        LoggerBegin("RenderTriangles");
 
         std::vector<tri> tris = Uranium_RenderTriangles();
         for (int i = 0; i < tris.size(); i++) {
@@ -291,6 +239,7 @@ namespace uranium {
             //log(tris[i]);
             //log(&tris[i]);
         }
+        LoggerEnd();
 
     }
 
@@ -301,7 +250,6 @@ namespace uranium {
         ImGui::Text("vertex array: %d", vertexarray);
         ImGui::End();
     }
-
 
     void drawBatch(const triBatch& batch) {
         glBindVertexArray(vertexarray);
@@ -315,6 +263,9 @@ namespace uranium {
         // Update the vertex buffer with the vertex data for the batch
         glBufferData(GL_ARRAY_BUFFER, batch.tris.size() * sizeof(tri), batch.tris.data(), GL_DYNAMIC_DRAW);
 
+        // Bind the index buffer
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
         std::vector<GLuint> indices;
         for (size_t i = 0; i < batch.tris.size() * 3; ++i) {
             indices.push_back(static_cast<GLuint>(i));
@@ -322,12 +273,17 @@ namespace uranium {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
 
         // Set the vertex attribute pointers
+        // Position
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)sizeof(vec3));
+        // Color
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(sizeof(vec3)));
         glEnableVertexAttribArray(1);
+        // Texture coordinates
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(sizeof(vec3) * 2));
         glEnableVertexAttribArray(2);
+
+        glBindTexture(GL_TEXTURE_2D, q1Texture->id);
 
         // Draw elements using the index buffer
         glDrawElements(GL_TRIANGLES, batch.tris.size() * 3, GL_UNSIGNED_INT, 0);
@@ -364,7 +320,7 @@ namespace uranium {
         std::vector<triBatch> batches = {};
 		std::vector<tri> currentBatch = {};
         for (int i = 0; i < triangles.size(); i++) {
-            if (currentBatch.size() == 1000) {
+            if (currentBatch.size() == 400) {
 				batches.push_back(triBatch(currentBatch));
 				currentBatch.clear();
 			}
@@ -380,9 +336,10 @@ namespace uranium {
 
     void U_StartFrameInternal() {
         glfwPollEvents();
+
+        LoggerBegin("Render");
+
         ImGUIStartFrame();
-
-
 
         RenderTriangles();
         batches.clear();
@@ -483,16 +440,15 @@ namespace uranium {
         else
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-        DrawTriangles(); 
-
+        //DrawTriangles(); 
+        LoggerBegin("DrawBatches");
         for (int i = 0; i < batches.size(); i++) {
-			//drawBatch(batches[i]);
+			drawBatch(batches[i]);
 		}
-
-        
+        LoggerEnd();
 
         DrawQuadImmedate(q1, q1Texture);
-        drawTriImmediate(testt->getTransformedTris()[0], defaultTexture);
+        drawTriImmediate(testt->getTransformedTris()[0], q1Texture);
 
         ImGUIDraw();
 
@@ -504,10 +460,9 @@ namespace uranium {
 		glClear(GL_COLOR_BUFFER_BIT);
         DrawQuadImmedate(fullscreenquad, offscreenTexture);
 
-
-
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
+        LoggerEnd();
     }
 
     void U_ShutdownInternal() {

@@ -134,6 +134,8 @@ namespace uranium {
 	};
     void addRenderable(renderable*);
 
+    void removeRenderable(renderable*);
+
     void U_INTUpdateScreenSize(int16_t, int16_t);
 
     quad* Uranium_GetFullscreenQuad(int, int);

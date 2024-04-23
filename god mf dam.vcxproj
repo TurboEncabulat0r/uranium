@@ -140,9 +140,9 @@
     <ClCompile Include="include\imgui_include\imgui_tables.cpp" />
     <ClCompile Include="include\imgui_include\imgui_widgets.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="shader.cpp" />
     <ClCompile Include="uranium\helpers.cpp" />
     <ClCompile Include="uranium\imgui_impl.cpp" />
+    <ClCompile Include="uranium\shader.cpp" />
     <ClCompile Include="uranium\uranium.cpp" />
     <ClCompile Include="uranium\uranium_internal.cpp" />
     <ClCompile Include="uranium\uranium_opengl.cpp" />
@@ -157,16 +157,16 @@
     <ClInclude Include="include\imgui_include\imstb_rectpack.h" />
     <ClInclude Include="include\imgui_include\imstb_textedit.h" />
     <ClInclude Include="include\imgui_include\imstb_truetype.h" />
-    <ClInclude Include="shader.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="uranium\helpers.h" />
     <ClInclude Include="uranium\imgui_impl.h" />
+    <ClInclude Include="uranium\shader.h" />
     <ClInclude Include="uranium\uranium.h" />
     <ClInclude Include="uranium\uranium_internal.h" />
     <ClInclude Include="uranium\uranium_opengl.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="colorfragment.glsl" />
+    <None Include="shaders\colorfragment.glsl" />
     <None Include="shaders\fragment.glsl" />
     <None Include="shaders\vertex.glsl" />
   </ItemGroup>

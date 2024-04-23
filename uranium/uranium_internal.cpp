@@ -135,6 +135,16 @@ namespace uranium {
 		renderables.push_back(r);
 	}
 
+    void removeRenderable(renderable* r) {
+        for (int i = 0; i < renderables.size(); i++) {
+            if (renderables[i] == r) {
+				renderables.erase(renderables.begin() + i);
+				return;
+			}
+		}
+
+    }
+
 
     texture::texture(unsigned int id) {
         this->id = id;
@@ -192,6 +202,15 @@ namespace uranium {
 		transform = glm::rotate(transform, glm::radians(rotation.z), glm::vec3(0, 0, 1));
 		transform = glm::scale(transform, glm::vec3(scale.x, scale.y, scale.z));
 		return transform;
+	}
+
+
+    void applyTransform(glm::mat4 t, tri& tri) {
+        for (int i = 0; i < 3; i++) {
+			glm::vec4 pos = glm::vec4(tri.verts[i].position.x, tri.verts[i].position.y, tri.verts[i].position.z, 1);
+			pos = t * pos;
+			tri.verts[i].position = vec3(pos.x, pos.y, pos.z);
+		}
 	}
 
 
@@ -270,6 +289,7 @@ namespace uranium {
 	}
 
     std::vector<tri> Uranium_RenderTriangles() {
+        
         std::vector<tri> tris = {};
         for (renderable* r : renderables) {
             if (!r->renderByDefault)

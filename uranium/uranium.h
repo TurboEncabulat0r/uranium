@@ -30,6 +30,7 @@ namespace uranium {
 
 	void LoggerBegin(const char* sectionName);
 
-	void LoggerEnd();
+	float LoggerEnd();
+
 
 }
