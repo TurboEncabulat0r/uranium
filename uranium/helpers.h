@@ -1,5 +1,8 @@
 #pragma once
+#include "uranium_internal.h"
 #include <string>
+
+
 namespace uranium {
 
 	std::string loadShader(const char* path);
@@ -25,4 +28,6 @@ namespace uranium {
 	void log(const char* data, const double data2);
 
 	void log(const char* data, const bool data2);
+
+	void log(tri* data);
 }

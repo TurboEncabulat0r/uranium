@@ -105,12 +105,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_BUILD</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)include\glew_include;$(ProjectDir)include\glfw_include;$(ProjectDir)include\imgui_include;$(ProjectDir)include\glm_include;C:\Users\trb0e\OneDrive\Documents\libraries\glfw-3.4.bin.WIN64\include;C:\Users\trb0e\OneDrive\Documents\libraries\glew-2.1.0\include;C:\Users\trb0e\OneDrive\Documents\libraries\imgui-master;C:\Users\trb0e\OneDrive\Documents\libraries\glm-1.0.1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include\glew_include;$(ProjectDir)include\glfw_include;$(ProjectDir)include\imgui_include;$(ProjectDir)include\glm_include;$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)lib;C:\Users\trb0e\OneDrive\Documents\libraries\glew-2.1.0\lib\Release\x64;C:\Users\trb0e\OneDrive\Documents\libraries\glfw-3.4.bin.WIN64\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -156,6 +156,7 @@
     <ClInclude Include="include\imgui_include\imstb_rectpack.h" />
     <ClInclude Include="include\imgui_include\imstb_textedit.h" />
     <ClInclude Include="include\imgui_include\imstb_truetype.h" />
+    <ClInclude Include="stb_image.h" />
     <ClInclude Include="uranium\helpers.h" />
     <ClInclude Include="uranium\imgui_impl.h" />
     <ClInclude Include="uranium\uranium.h" />

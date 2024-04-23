@@ -1,5 +1,5 @@
-// renderer.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+// Uranium C++ Renderer
+// By Turbo
 #include <windows.h>
 #pragma comment(lib, "glew32s.lib")
 #pragma comment(lib, "glfw3.lib")
@@ -16,8 +16,11 @@
 
 
 void onImgui() {
-	ImGui::Begin("Hello, world!");
-	ImGui::Text("This is some useful text.");
+	ImGui::Begin("Uranium Renderer");
+	ImGui::Text("Demo window test stuff yeah");
+	if (ImGui::Button("wireframe")) {
+		uranium::toggleWireframe();
+	}
 	ImGui::End();
 }
 
@@ -26,15 +29,18 @@ void onRender()
 
 }
 
-
-
 int main(void)
 {
-	uranium::log(3.2);
+	// initialize uranium
 	uranium::Initialize();
+
+	// add uranium callbacks
 	uranium::AddRenderCallback(onRender);
 	uranium::AddImGUIDrawCallback(onImgui);
+
 	uranium::Loop();
+
+	// when loop stops, shutdown uranium
 	uranium::Shutdown();
 	return 0;
 }

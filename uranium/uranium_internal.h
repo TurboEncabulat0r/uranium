@@ -46,6 +46,7 @@ namespace uranium {
     struct vertex {
         vec3 position;
         vec3 color;
+        vec2 uv;
 
         vertex();
 
@@ -68,6 +69,7 @@ namespace uranium {
     public:
 
         std::vector<tri> tris;
+        bool renderByDefault = true;
 
         renderable();
 
@@ -78,12 +80,24 @@ namespace uranium {
         virtual void* getData();
     };
 
+    struct texture {
+		unsigned int id;
+		int width, height;
+
+        texture(unsigned int id, int width, int height);
+
+        texture(unsigned int id);
+	};
+
     class primitive : public renderable {
     public:
         vec3 position;
         vec3 scale;
         vec3 rotation;
         vec3 color;
+
+        bool getAbsolute = false;
+
 
         primitive();
 
@@ -108,7 +122,12 @@ namespace uranium {
     class triangle : public primitive {
     public:
 		triangle();
+        triangle(vec3 pos);
+        triangle(vec3 pos, vec3 color);
+
 	};
+
+    quad* Uranium_GetFullscreenQuad(int, int);
 
     std::vector<tri> Uranium_RenderTriangles();
 
@@ -117,4 +136,9 @@ namespace uranium {
     std::vector<tri> tessellate(const std::vector<vertex>);
 
     void* getData(tri* t);
+
+    void U_ToggleWireframe();
+
+    bool U_IsWireframe();
+
 }

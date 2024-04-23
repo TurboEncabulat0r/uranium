@@ -76,4 +76,13 @@ namespace uranium {
 		outputData(data);
 	}
 
+	void log(tri* data) {
+		std::cout << "Triangle: " << std::endl;
+		for (int i = 0; i < 3; i++) {
+			std::cout << "___vertex " << i << "___" << std::endl;
+			std::cout << "Position: " << data->verts[i].position.x << ", " << data->verts[i].position.y << ", " << data->verts[i].position.z << std::endl;
+			std::cout << "Color: " << data->verts[i].color.x << ", " << data->verts[i].color.y << ", " << data->verts[i].color.z << std::endl;
+		}
+	}
+
 }

@@ -1,8 +1,21 @@
 #include "uranium_internal.h"
+
+#include "helpers.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace uranium {
+
+    // global variables
+    extern bool isWireframe = false;
+    extern uint16_t screenWidth = 1280;
+    extern uint16_t screenHeight = 720;
+    extern bool isFullscreen = false;
+    extern bool isVsync = false;
+
+
+#pragma region uranium_math
+
 
     vec3::vec3(float x, float y, float z) : x(x), y(y), z(z) {}
 
@@ -50,9 +63,6 @@ namespace uranium {
 
 
     }
-
-
-    
    
     vertex::vertex() {
         position = vec3(0, 0, 0);
@@ -101,6 +111,10 @@ namespace uranium {
         return result;
     }
 
+#pragma endregion
+
+
+#pragma region uranium_rendering
     tri::tri() {
         verts[0] = vertex(0, 1, 0);
         verts[1] = vertex(1, -1, 0);
@@ -119,6 +133,16 @@ namespace uranium {
 
     std::vector<renderable*> renderables = {};
 
+
+    texture::texture(unsigned int id) {
+        this->id = id;
+	}
+
+    texture::texture(unsigned int id, int w, int h) {
+		this->id = id;
+		this->width = w;
+		this->height = h;
+    }
 
     renderable::renderable() {
         tris = {};
@@ -140,7 +164,8 @@ namespace uranium {
     primitive::primitive() {
         position = vec3(0, 0, 0);
         rotation = vec3(0, 0, 0);
-        scale = vec3(1, 1, 1);
+        scale = vec3(0.3, 0.3, 0.3);
+        color = vec3(1, 1, 1);
 	}
 
     void primitive::setPosition(vec3 pos) {
@@ -171,14 +196,24 @@ namespace uranium {
 	}
 
     std::vector<tri> primitive::getTransformedTris() {
+
         std::vector<tri> transformedTris = {};
         for (tri t : tris) {
             vertex v1 = t.verts[0];
             vertex v2 = t.verts[1];
-            vertex v3 = t.verts[2];
-            v1.position = (v1.position * scale) + position;
-            v2.position = (v2.position * scale) + position;
-            v3.position = (v3.position * scale) + position;
+            vertex v3 = t.verts[2];        
+            if (!getAbsolute) {
+                v1.position = (v1.position * scale) + position;
+                v2.position = (v2.position * scale) + position;
+                v3.position = (v3.position * scale) + position;
+            }
+            v1.color = color;
+            v2.color = color;
+            v3.color = color;
+
+            v1.uv = t.verts[0].uv;
+            v2.uv = t.verts[1].uv;
+            v3.uv = t.verts[2].uv;
             transformedTris.push_back(tri(v1, v2, v3));
         }
         return transformedTris;
@@ -187,6 +222,16 @@ namespace uranium {
     quad::quad() {
         tri t1 = tri(vertex(-1, 1, 0), vertex(1, 1, 0), vertex(-1, -1, 0));
         tri t2 = tri(vertex(1, 1, 0), vertex(1, -1, 0), vertex(-1, -1, 0));
+
+        // sets uv coordinates
+        t1.verts[0].uv = vec2(0, 0);
+        t1.verts[1].uv = vec2(1, 0);
+        t1.verts[2].uv = vec2(0, 1);
+
+        t2.verts[0].uv = vec2(1, 0);
+        t2.verts[1].uv = vec2(1, 1);
+        t2.verts[2].uv = vec2(0, 1);
+
         addTri(t1);
         addTri(t2);
 	}
@@ -194,6 +239,19 @@ namespace uranium {
     triangle::triangle() {
 		tri t = tri(vertex(0, 1, 0), vertex(1, -1, 0), vertex(-1, -1, 0));
 		addTri(t);
+    }
+
+    triangle::triangle(vec3 pos) {
+        pos = pos;
+        tri t = tri(vertex(0, 1, 0), vertex(1, -1, 0), vertex(-1, -1, 0));
+        addTri(t);
+    }
+
+    triangle::triangle(vec3 pos, vec3 color) {
+        this->position = pos;
+        this->color = color;
+        tri t = tri(vertex(0, 1, 0), vertex(1, -1, 0), vertex(-1, -1, 0));
+        addTri(t);
     }
 
     bool isConvex(const vertex& prev, const vertex& current, const vertex& next) {
@@ -210,11 +268,30 @@ namespace uranium {
     std::vector<tri> Uranium_RenderTriangles() {
         std::vector<tri> tris = {};
         for (renderable* r : renderables) {
+            if (!r->renderByDefault)
+                continue;
             auto t = r->getTransformedTris();
             tris.insert(tris.end(), t.begin(), t.end());
 		}
         return tris;
     }
+
+    quad* Uranium_GetFullscreenQuad(int w, int h) {
+		quad* q = new quad();
+		q->getAbsolute = true;
+        q->setScale(vec3(1, 1, 1));
+		return q;
+	} 
+
+
+
+    void U_ToggleWireframe() {
+        isWireframe = !isWireframe;
+    }
+
+    bool U_IsWireframe() {
+		return isWireframe;
+	}
 
     //bool isConvex(const vertex& prev, const vertex& current, const vertex& next) {
     //    glm::vec2 edge1 = current.position - prev.position;
@@ -232,6 +309,8 @@ namespace uranium {
 		}
 		return tris;
 	}
+
+#pragma endregion
     
     
 

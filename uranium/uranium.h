@@ -21,4 +21,6 @@ namespace uranium {
 	void Loop();
 
 	void Shutdown();
+
+	void toggleWireframe();
 }

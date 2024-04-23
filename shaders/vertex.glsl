@@ -11,6 +11,6 @@ out vec3 fPosition;
 void main() {
 	fColor = color;
 	fTexCoord = texCoord;
-	fPosition = vec3(position.x, position.y, position.z);
-	gl_Position = vec4(vec3(position.x, position.y, position.z), 1.0);
+	fPosition = vec3(position.x, -position.y, position.z);
+	gl_Position = vec4(vec3(position.x, -position.y, position.z), 1.0);
 }
