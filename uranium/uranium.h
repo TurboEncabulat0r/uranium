@@ -1,5 +1,7 @@
 #pragma once
 #include "helpers.h"
+#include "uranium_internal.h"
+
 using function = void (*)();
 
 
@@ -23,4 +25,11 @@ namespace uranium {
 	void Shutdown();
 
 	void toggleWireframe();
+
+	vec2 getScreenSize();
+
+	void LoggerBegin(const char* sectionName);
+
+	void LoggerEnd();
+
 }

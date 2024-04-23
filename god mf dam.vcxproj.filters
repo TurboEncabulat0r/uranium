@@ -25,6 +25,9 @@
     <Filter Include="Source Files\uranium\components">
       <UniqueIdentifier>{00fd6a2d-ce6b-4703-8e78-6dd204e90f25}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\components">
+      <UniqueIdentifier>{335026b4-d262-40a7-8201-20766335c240}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -65,6 +68,9 @@
     </ClCompile>
     <ClCompile Include="uranium\imgui_impl.cpp">
       <Filter>Source Files\uranium</Filter>
+    </ClCompile>
+    <ClCompile Include="shader.cpp">
+      <Filter>Source Files\uranium\components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -113,12 +119,18 @@
     <ClInclude Include="stb_image.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
+    <ClInclude Include="shader.h">
+      <Filter>Header Files\components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\fragment.glsl">
       <Filter>Resource Files\shaders</Filter>
     </None>
     <None Include="shaders\vertex.glsl">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="colorfragment.glsl">
       <Filter>Resource Files\shaders</Filter>
     </None>
   </ItemGroup>

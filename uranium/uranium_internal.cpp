@@ -8,8 +8,6 @@ namespace uranium {
 
     // global variables
     extern bool isWireframe = false;
-    extern uint16_t screenWidth = 1280;
-    extern uint16_t screenHeight = 720;
     extern bool isFullscreen = false;
     extern bool isVsync = false;
 
@@ -133,6 +131,10 @@ namespace uranium {
 
     std::vector<renderable*> renderables = {};
 
+    void addRenderable(renderable* r) {
+		renderables.push_back(r);
+	}
+
 
     texture::texture(unsigned int id) {
         this->id = id;
@@ -146,7 +148,7 @@ namespace uranium {
 
     renderable::renderable() {
         tris = {};
-        renderables.push_back(this);
+        //renderables.push_back(this);
 	}
 
     void renderable::addTri(tri t) {
@@ -179,6 +181,8 @@ namespace uranium {
     void primitive::setScale(vec3 s) {
 		scale = s;
 	}
+
+    
 
     glm::mat4 primitive::getTransform() {
 		glm::mat4 transform = glm::mat4(1.0f);

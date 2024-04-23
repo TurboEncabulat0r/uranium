@@ -63,6 +63,12 @@ namespace uranium {
         tri(vertex v1, vertex v2, vertex v3);
     };
 
+    struct triBatch {
+        std::vector<tri> tris;
+        triBatch(std::vector<tri> tris) : tris(tris) {}
+    };
+
+
     #define URANIUM_VERTEX_SIZE sizeof(float) * 6
 
     class renderable {
@@ -126,6 +132,9 @@ namespace uranium {
         triangle(vec3 pos, vec3 color);
 
 	};
+    void addRenderable(renderable*);
+
+    void U_INTUpdateScreenSize(int16_t, int16_t);
 
     quad* Uranium_GetFullscreenQuad(int, int);
 

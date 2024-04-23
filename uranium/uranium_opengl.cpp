@@ -1,24 +1,29 @@
 #include <iostream>
-#include <windows.h>
-#include "imgui_impl.h"
-#include "uranium.h"
+#include <fstream>
+#include <string>
+#include <vector>
+
 #include <GL/glew.h>
 #include <GL/glu.h>
 #include <GLFW/glfw3.h>
-#include <fstream>
-#include <string>
-#include "helpers.h"
-#include <vector>
 #include <glm/vec3.hpp>
+
+#include "imgui_impl.h"
+#include "uranium.h"
 #include "uranium_internal.h"
+#include "helpers.h"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#define URANIUM_RENDER_WIDTH 1280
-#define URANIUM_RENDER_HEIGHT 720
+int16_t URANIUM_RENDER_WIDTH = 1280;
+int16_t URANIUM_RENDER_HEIGHT = 720;
 
 namespace uranium {
+
+
 	static GLFWwindow* window;
+
     // Vertex shader source code
     const char* vertexShaderSource = "shaders/vertex.glsl";
     // Fragment shader source code
@@ -28,6 +33,22 @@ namespace uranium {
     GLuint shaderProgram;
     GLuint vertexBuffer;
     GLuint vertexarray;
+    GLuint ibo;
+
+    GLuint offscreenFramebuffer;
+    quad* fullscreenquad;
+    texture* offscreenTexture;
+
+    texture* defaultTexture;
+
+    triangle* testt;
+
+    quad* q1;
+    texture* q1Texture;
+
+    std::vector<tri> triangles = {};
+
+    std::vector<triBatch> batches = {};
 
     // screen space is the normalized 0-1 value of the screen
     // world space is 10 times the screen space
@@ -35,11 +56,15 @@ namespace uranium {
         return world / 10;
 	}
 
+    void U_INTUpdateScreenSize(int16_t width, int16_t height) {
+		URANIUM_RENDER_WIDTH = width;
+		URANIUM_RENDER_HEIGHT = height;
+	}
+
     vec3 worldToScreenSpace(vec3 world) {
         return world * 0.1f;
 	}
-    
-    std::vector<tri> triangles = {};
+   
 
     void addTri(tri t) {
         triangles.push_back(t);
@@ -103,12 +128,6 @@ namespace uranium {
         fprintf(stderr, "GLFW Error %d: %s\n", error, description);
     }
 
-    GLuint offscreenFramebuffer;
-    texture* offscreenTexture;
-    quad* fsquad;
-    quad* q1;
-
-    texture* q1Texture;
     texture* loadTexture(const char* path) {
         texture* t = new texture(0);
         unsigned int id;
@@ -141,7 +160,24 @@ namespace uranium {
             return nullptr;
         }
     }
-    GLuint ibo;
+
+    texture* GenerateColorTexture() {
+        // generates a opengl texture that is a solid color
+        unsigned int id;
+		glGenTextures(1, &id);
+		glBindTexture(GL_TEXTURE_2D, id);
+        // Set the texture wrapping/filtering options (on the currently bound texture object)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        texture* t = new texture(id);
+        t->height = 100;
+        t->width = 100;
+        return t;
+	}
+
 
     int InitializeWindow(const char* name) {
 
@@ -214,7 +250,7 @@ namespace uranium {
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,  sizeof(vertex), (void*)(sizeof(vec3)));
         glEnableVertexAttribArray(1);
 
-        
+        defaultTexture = GenerateColorTexture();
 
         std::string vertex = loadShader(vertexShaderSource);
         std::string fragment = loadShader(fragmentShaderSource);
@@ -233,11 +269,14 @@ namespace uranium {
 
         q1->position = vec3(0, 0.2, 0);
 
-        fsquad = Uranium_GetFullscreenQuad(720, 980);
-        fsquad->renderByDefault = false;
+        fullscreenquad = Uranium_GetFullscreenQuad(720, 980);
+        fullscreenquad->renderByDefault = false;
+
+        testt = new triangle();
+        testt->color = vec3(1, 0, 0);
+        testt->setPosition(vec3(0, 0, 0));
+        testt->scale = (vec3(0.4f, 0.4f, 0.4f));
     }
-
-
 
     bool isFinished() {
 		return glfwWindowShouldClose(window);
@@ -249,6 +288,7 @@ namespace uranium {
         std::vector<tri> tris = Uranium_RenderTriangles();
         for (int i = 0; i < tris.size(); i++) {
             addTri(tris[i]);
+            //log(tris[i]);
             //log(&tris[i]);
         }
 
@@ -262,10 +302,6 @@ namespace uranium {
         ImGui::End();
     }
 
-    struct triBatch {
-        std::vector<tri> tris;
-        triBatch(std::vector<tri> tris) : tris(tris) {}
-    };
 
     void drawBatch(const triBatch& batch) {
         glBindVertexArray(vertexarray);
@@ -300,16 +336,27 @@ namespace uranium {
     void DrawTriangles() {
         
         glUseProgram(shaderProgram);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+        glBindVertexArray(vertexarray);
+
+		// Set the attribute pointers
+		// Position
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0);
+        glEnableVertexAttribArray(0);
+		// Color
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(sizeof(vec3)));
+        glEnableVertexAttribArray(1);
+		// Texture coordinates
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(sizeof(vec3) * 2));
+        glEnableVertexAttribArray(2);
+
+		// Update buffer data once (assuming all triangles have the same vertices)
+
+        glBufferData(GL_ARRAY_BUFFER, sizeof(tri) * triangles.size(), triangles.data(), GL_STATIC_DRAW);
 
         for (int i = 0; i < triangles.size(); i++) {
-            glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-            glBindVertexArray(vertexarray);
-
-			glBufferData(GL_ARRAY_BUFFER, sizeof(tri), getData(&triangles[i]), GL_STATIC_DRAW);
-			glDrawArrays(GL_TRIANGLES, 0, 3);
-
-            glBindVertexArray(0);
-		
+            glBindTexture(GL_TEXTURE_2D, defaultTexture->id);
+			glDrawArrays(GL_TRIANGLES, i * 3, 3);
 		}
     }
 
@@ -329,7 +376,7 @@ namespace uranium {
 		return batches;
     }
 
-    std::vector<triBatch> batches = {};
+
 
     void U_StartFrameInternal() {
         glfwPollEvents();
@@ -338,10 +385,38 @@ namespace uranium {
 
 
         RenderTriangles();
-        //batches.clear();
-        //batches = cookBatches();
+        batches.clear();
+        batches = cookBatches();
         imgui();
     }
+
+    void drawTriImmediate(tri t) {
+		glBindVertexArray(vertexarray);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+
+		glBufferData(GL_ARRAY_BUFFER, sizeof(tri), &t, GL_STATIC_DRAW);
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+	}
+
+    void drawTriImmediate(tri t, texture* tex) {
+		glBindVertexArray(vertexarray);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+
+		glBufferData(GL_ARRAY_BUFFER, sizeof(tri), &t, GL_STATIC_DRAW);
+
+        // sets pointers for the vertex attributes
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(sizeof(vec3)));
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(sizeof(vec3) * 2));
+        glEnableVertexAttribArray(2);
+
+		glBindTexture(GL_TEXTURE_2D, tex->id);
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+	}
 
     void DrawQuadImmedate(quad* q, texture* t) {
         if (t == nullptr) {
@@ -401,7 +476,7 @@ namespace uranium {
 
         glBindFramebuffer(GL_FRAMEBUFFER, offscreenFramebuffer);
         glViewport(0, 0, URANIUM_RENDER_WIDTH, URANIUM_RENDER_HEIGHT);
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
         if (U_IsWireframe())
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -410,7 +485,14 @@ namespace uranium {
 
         DrawTriangles(); 
 
+        for (int i = 0; i < batches.size(); i++) {
+			//drawBatch(batches[i]);
+		}
+
+        
+
         DrawQuadImmedate(q1, q1Texture);
+        drawTriImmediate(testt->getTransformedTris()[0], defaultTexture);
 
         ImGUIDraw();
 
@@ -420,7 +502,7 @@ namespace uranium {
         glViewport(0, 0, display_w, display_h);
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
 		glClear(GL_COLOR_BUFFER_BIT);
-        DrawQuadImmedate(fsquad, offscreenTexture);
+        DrawQuadImmedate(fullscreenquad, offscreenTexture);
 
 
 

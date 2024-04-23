@@ -9,6 +9,11 @@
 
 
 namespace uranium {
+    static uint16_t screenWidth = 1280;
+    static uint16_t screenHeight = 720;
+
+    bool debug = true;
+
     std::vector<function> renderCallbacks = {};
     std::vector<function> imguiCallbacks = {};
 
@@ -32,11 +37,18 @@ namespace uranium {
         }
     }
 
-    void invokeImGUICallbacks() {
-        for (int i = 0; i < imguiCallbacks.size(); i++) {
-            invoke(imguiCallbacks[i]);
-        }
-    }
+    vec2 getScreenSize() {
+		return vec2(screenWidth, screenHeight);
+	}
+
+    void updateScreenSize(uint16_t width, uint16_t height) {
+		screenWidth = width;
+		screenHeight = height;
+        U_INTUpdateScreenSize(screenWidth, screenHeight);
+
+	}
+
+
 
     void AddImGUIDrawCallback(function f) {
         imguiCallbacks.push_back(f);
@@ -51,10 +63,91 @@ namespace uranium {
 		}
 	}
 
+    bool showStats = false;
 
+    void toggleStats() {
+        showStats = !showStats;
 
+    }
 
+    struct loggerResult {
+        std::string sectionName;
+        float time;
+    };
 
+    std::vector<loggerResult> loggerResults = {};
+
+    struct logger {
+		std::string sectionName;
+        std::chrono::time_point<std::chrono::system_clock> start;
+	};
+
+    std::vector<logger> loggers = {};
+
+    void LoggerBegin(const char* sectionName) {
+        if (!debug) return;
+        logger l;
+        l.sectionName = sectionName;
+		l.start = std::chrono::system_clock::now();
+		loggers.push_back(l);
+    }
+
+    void LoggerEnd() {
+        if (!debug) return;
+		logger l = loggers.back();
+		loggers.pop_back();
+		auto end = std::chrono::system_clock::now();
+		std::chrono::duration<double> elapsed_seconds = end - l.start;
+		std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+		std::cout << l.sectionName << " took " << elapsed_seconds.count() << "s\n";
+        loggerResult r;
+        r.sectionName = l.sectionName;
+        r.time = elapsed_seconds.count();
+        loggerResults.push_back(r);
+	}
+
+    void uDisplayMenu() {
+        ImGui::Begin("Uranium");
+
+        if (ImGui::Button("Toggle Wireframe")) {
+			toggleWireframe();
+		}
+
+        if (ImGui::Button("Show/Hide stats")) {
+            
+        }
+
+        // editor for screen size
+        static int width = screenWidth;
+        static int height = screenHeight;
+        ImGui::LabelText("", "Screen Size");
+
+		ImGui::InputInt("Width", &width);
+        ImGui::InputInt("Height", &height);
+
+        if (ImGui::Button("Update Screen Size")) {
+            updateScreenSize(width, height);
+
+        }
+
+        if (showStats) {
+            ImGui::Begin("Logger Stats");
+            for (int i = 0; i < loggerResults.size(); i++) {
+				loggerResult r = loggerResults[i];
+				ImGui::Text("%s: %f", r.sectionName.c_str(), r.time);
+			}
+			ImGui::End();
+        }
+
+        ImGui::End();
+    }
+
+    void invokeImGUICallbacks() {
+        uDisplayMenu();
+        for (int i = 0; i < imguiCallbacks.size(); i++) {
+            invoke(imguiCallbacks[i]);
+        }
+    }
 
 
     enum serialType {
