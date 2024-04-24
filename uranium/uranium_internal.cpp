@@ -1,3 +1,4 @@
+#include "uranium.h"
 #include "uranium_internal.h"
 
 #include "helpers.h"
@@ -158,10 +159,25 @@ namespace uranium {
 
     renderable::renderable() {
         tris = {};
+        this->computeTranslation();
         //renderables.push_back(this);
 	}
 
+    void setTriColor(tri& t, vec3 color) {
+		t.verts[0].color = color;
+		t.verts[1].color = color;
+		t.verts[2].color = color;
+	}
+
+    void setTriUV(tri& t, vec2 uv1, vec2 uv2, vec2 uv3) {
+        t.verts[0].uv = uv1;
+        t.verts[1].uv = uv2;
+        t.verts[2].uv = uv3;
+    }
+
     void renderable::addTri(tri t) {
+        setTriColor(t, color);
+
 		tris.push_back(t);
 	}
 
@@ -174,35 +190,62 @@ namespace uranium {
 	}
 
     primitive::primitive() {
-        position = vec3(0, 0, 0);
-        rotation = vec3(0, 0, 0);
-        scale = vec3(0.3, 0.3, 0.3);
         color = vec3(1, 1, 1);
 	}
 
-    void primitive::setPosition(vec3 pos) {
-		position = pos;
+    void mat4SetPosition(glm::mat4& t, vec3 pos) {
+		t = glm::translate(t, glm::vec3(pos.x, pos.y, pos.z));
+	}
+
+    void mat4SetScale(glm::mat4& t, vec3 scale) {
+        t = glm::scale(t, glm::vec3(scale.x, scale.y, scale.z));
     }
 
-    void primitive::setRotation(vec3 rot) {
+    void mat4SetRotation(glm::mat4& t, vec3 rotation) {
+		t = glm::rotate(t, glm::radians(rotation.x), glm::vec3(1, 0, 0));
+		t = glm::rotate(t, glm::radians(rotation.y), glm::vec3(0, 1, 0));
+		t = glm::rotate(t, glm::radians(rotation.z), glm::vec3(0, 0, 1));
+	}
+
+    void renderable::setPosition(vec3 pos) {
+        position = pos;
+        computeTranslation();
+    }
+
+    void renderable::setRotation(vec3 rot) {
         rotation = rot;
+        computeTranslation();
     }
 
-    void primitive::setScale(vec3 s) {
-		scale = s;
+    void renderable::setScale(vec3 s) {
+        scale = s;
+        computeTranslation();
 	}
 
-    
-
-    glm::mat4 primitive::getTransform() {
-		glm::mat4 transform = glm::mat4(1.0f);
-		transform = glm::translate(transform, glm::vec3(position.x, position.y, position.z));
-		transform = glm::rotate(transform, glm::radians(rotation.x), glm::vec3(1, 0, 0));
-		transform = glm::rotate(transform, glm::radians(rotation.y), glm::vec3(0, 1, 0));
-		transform = glm::rotate(transform, glm::radians(rotation.z), glm::vec3(0, 0, 1));
-		transform = glm::scale(transform, glm::vec3(scale.x, scale.y, scale.z));
-		return transform;
+    glm::mat4 renderable::getTranslation() {
+        computeTranslation();
+		return this->translation;
 	}
+
+    void renderable::computeTranslation() {
+        this->translation = glm::mat4(1.0f);
+        // apply scale
+        mat4SetScale(this->translation, scale);
+        // apply rotation
+        mat4SetRotation(this->translation, rotation);
+        // apply position
+        mat4SetPosition(this->translation, position);
+	}
+
+    void ApplyTranslation(const glm::mat4& t, tri& tri) {
+        // Apply the translation matrix to each vertex of the triangle
+
+        for (int i = 0; i < 3; ++i) {
+            glm::vec4 pos(tri.verts[i].position.x, tri.verts[i].position.y, tri.verts[i].position.z, 1);
+            pos = t * pos;
+            tri.verts[i].position = vec3(pos.x, pos.y, pos.z);
+        }
+    }
 
 
     void applyTransform(glm::mat4 t, tri& tri) {
@@ -221,24 +264,13 @@ namespace uranium {
     std::vector<tri> primitive::getTransformedTris() {
 
         std::vector<tri> transformedTris = {};
-        for (tri t : tris) {
-            vertex v1 = t.verts[0];
-            vertex v2 = t.verts[1];
-            vertex v3 = t.verts[2];        
-            if (!getAbsolute) {
-                v1.position = (v1.position * scale) + position;
-                v2.position = (v2.position * scale) + position;
-                v3.position = (v3.position * scale) + position;
-            }
-            v1.color = color;
-            v2.color = color;
-            v3.color = color;
 
-            v1.uv = t.verts[0].uv;
-            v2.uv = t.verts[1].uv;
-            v3.uv = t.verts[2].uv;
-            transformedTris.push_back(tri(v1, v2, v3));
-        }
+        // applies translation to each triangle
+        for (tri t : tris) {
+			tri tCopy = t;
+			ApplyTranslation(translation, tCopy);
+			transformedTris.push_back(tCopy);
+		}
         return transformedTris;
     }
 
@@ -259,8 +291,18 @@ namespace uranium {
         addTri(t2);
 	}
 
+    vec2 triUvs[3] = {vec2(0, 0),
+    vec2(1, 0),
+    vec2(0, 1)};
+    vec2* getTriangleUVs() {
+
+		return triUvs;
+	}
+
     triangle::triangle() {
 		tri t = tri(vertex(0, 1, 0), vertex(1, -1, 0), vertex(-1, -1, 0));
+        vec2* uvs = getTriangleUVs();
+        setTriUV(t, uvs[0], uvs[1], uvs[2]);
 		addTri(t);
     }
 
@@ -271,7 +313,7 @@ namespace uranium {
     }
 
     triangle::triangle(vec3 pos, vec3 color) {
-        this->position = pos;
+        this->setPosition(pos);
         this->color = color;
         tri t = tri(vertex(0, 1, 0), vertex(1, -1, 0), vertex(-1, -1, 0));
         addTri(t);
@@ -289,14 +331,24 @@ namespace uranium {
 	}
 
     std::vector<tri> Uranium_RenderTriangles() {
-        
-        std::vector<tri> tris = {};
+        std::vector<tri> tris;
+
         for (renderable* r : renderables) {
             if (!r->renderByDefault)
                 continue;
-            auto t = r->getTransformedTris();
-            tris.insert(tris.end(), t.begin(), t.end());
-		}
+
+            const glm::mat4& translationMatrix = r->getTranslation(); // Cache translation
+
+            for (tri& t : r->tris) {
+
+                tri tCopy = t; // Copy the triangle
+                ApplyTranslation(translationMatrix, tCopy); // Apply translation to each triangle
+                tris.push_back(tCopy); // Append the transformed triangle to the result
+            }
+
+            //tris.insert(tris.end(), r->tris.begin(), r->tris.end()); // Append triangles to the result
+        }
+
         return tris;
     }
 
@@ -307,6 +359,55 @@ namespace uranium {
 		return q;
 	} 
 
+    cube::cube(){
+        // creates the quads for the cube
+        quad* front = new quad();
+        front->setPosition(vec3(0, 0, 1));
+        front->setRotation(vec3(0, 0, 0));
+        front->setScale(vec3(1, 1, 1));
+
+        this->faces[0] = front;
+
+        quad* back = new quad();
+        back->setPosition(vec3(0, 0, -1));
+        back->setRotation(vec3(0, 180, 0));
+        back->setScale(vec3(1, 1, 1));
+
+        this->faces[1] = back;
+
+        quad* left = new quad();
+        left->setPosition(vec3(-1, 0, 0));
+        left->setRotation(vec3(0, 90, 0));
+        left->setScale(vec3(1, 1, 1));
+
+        this->faces[2] = left;
+
+        quad* right = new quad();
+        right->setPosition(vec3(1, 0, 0));
+        right->setRotation(vec3(0, -90, 0));
+        right->setScale(vec3(1, 1, 1));
+
+        this->faces[3] = right;
+
+        quad* top = new quad();
+        top->setPosition(vec3(0, 1, 0));
+        top->setRotation(vec3(90, 0, 0));
+        top->setScale(vec3(1, 1, 1));
+
+        this->faces[4] = top;
+
+        quad* bottom = new quad();
+        bottom->setPosition(vec3(0, -1, 0));
+        bottom->setRotation(vec3(-90, 0, 0));
+        bottom->setScale(vec3(1, 1, 1));
+
+        this->faces[5] = bottom;
+
+        for (int i = 0; i < 6; i++) {
+            addRenderable(faces[i]);
+            addTri(faces[i]->tris[0]);
+        }
+    }
 
 
     void U_ToggleWireframe() {

@@ -8,6 +8,8 @@
 #include "imgui_impl.h"
 #include "cmath"
 
+#define LOGGER_HISTORY 40
+
 namespace uranium {
     static uint16_t screenWidth = 1280;
     static uint16_t screenHeight = 720;
@@ -73,7 +75,7 @@ namespace uranium {
 		}
 	}
 
-    bool showStats = false;
+    bool showStats = true;
 
     void toggleStats() {
         showStats = !showStats;
@@ -84,16 +86,25 @@ namespace uranium {
 		std::string sectionName;
         std::chrono::time_point<std::chrono::system_clock> start;
         int logCount = 0;
-        float history[10];
+        float history[LOGGER_HISTORY];
+
+        logger(){
+            for (int i = 0; i < LOGGER_HISTORY; i++) {
+                history[i] = 0;
+            }
+        }
 	};
 
     std::vector<logger* > loggers = {};
 
+    std::vector<logger*> currentLoggerStack = {};
     void addLogger(const char* name, std::chrono::time_point<std::chrono::system_clock> s) {
         // if logger already exists, update it
         for (int i = 0; i < loggers.size(); i++) {
             if (loggers[i]->sectionName == name) {
 				loggers[i]->start = s;
+                // add to stack
+                currentLoggerStack.push_back(loggers[i]);
 				return;
 			}
 		}
@@ -101,39 +112,71 @@ namespace uranium {
         l->sectionName = name;
         l->start = s;
         loggers.push_back(l);
+        currentLoggerStack.push_back(l);
     }
+
+    float roundf(float var, int d) {
+        // rounds the float to d decimal place, uses cmath
+        float v = std::roundf(var * d) / d;
+        return v;
+	}
 
     float getAverageLoggerTime(logger* l) {
 		float total = 0;
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < LOGGER_HISTORY; i++) {
 			total += l->history[i];
 		}
-        // round to 4
-        return roundf((total / 10) * 10000) / 10000;
+        return roundf(total / LOGGER_HISTORY, 100);
 	}
-
+    
     void LoggerBegin(const char* sectionName) {
         if (!debug) return;
         auto start = std::chrono::system_clock::now();
         addLogger(sectionName, start);
     }
 
-    float LoggerEnd() {
+    float LoggerEnd(const char* name) {
         if (!debug) return 0;
+        if (currentLoggerStack.size() == 0) { return 0; }
         auto end = std::chrono::system_clock::now();
-        std::chrono::duration<float> elapsed_seconds = end - loggers[loggers.size() - 1]->start;
+        logger* currentLogger = currentLoggerStack.back();
+        std::chrono::duration<float> elapsed_seconds = end - currentLogger->start;
+        
+        currentLogger->history[currentLogger->logCount] = elapsed_seconds.count();
+        currentLogger->logCount++;
 
-        logger* current = loggers[loggers.size() - 1];
-        current->history[current->logCount] = elapsed_seconds.count();
-        current->logCount++;
-
-        if (current->logCount == 10) {
-			current->logCount = 0;
+        if (currentLogger->logCount == LOGGER_HISTORY) {
+            currentLogger->logCount = 0;
 		}
-
+        //std::cout << currentLogger->sectionName << " took " << elapsed_seconds.count() << " seconds" << std::endl;
+        // remove from stack
+        currentLoggerStack.pop_back();
+        if (currentLoggerStack.size() > 0) {
+			currentLogger = currentLoggerStack.back();
+		}
         return elapsed_seconds.count();
 	}
+
+    float secToMs(float sec) {
+		return sec * 1000;
+	}
+
+    std::string getMenuTime(logger* l, bool inMs, bool average) {
+        if (average) {
+			return std::to_string(getAverageLoggerTime(l));
+		}
+        else {
+            if (inMs) {
+				return std::to_string(secToMs(l->history[l->logCount])) + "ms";
+			}
+            else {
+				return std::to_string(l->history[l->logCount]);
+			}
+		}
+    }
+
     bool showAvg = false;
+    bool showInMs = true;
     void uDisplayMenu() {
         ImGui::Begin("Uranium");
 
@@ -144,6 +187,10 @@ namespace uranium {
         if (ImGui::Button("Show/Hide stats")) {
             toggleStats();
         }
+
+        if (ImGui::Button("Log Funcs")) {
+            debug = !debug;
+		}
 
         // editor for screen size
         static int width = screenWidth;
@@ -164,16 +211,17 @@ namespace uranium {
             if (ImGui::Button("Show Average")) {
 				showAvg = !showAvg;
 			}
-            if (showAvg) {
-                for (int i = 0; i < loggers.size(); i++) {
-					ImGui::Text("%s: %f", loggers[i]->sectionName.c_str(), getAverageLoggerTime(loggers[i]));
-				}
+            if (ImGui::Button("Show in ms")) {
+                showInMs = !showInMs;
+            }
+
+            for (int i = 0; i < loggers.size(); i++) {
+				logger* l = loggers[i];
+				ImGui::Text(l->sectionName.c_str());
+				ImGui::SameLine();
+				ImGui::Text(getMenuTime(l, showInMs, showAvg).c_str());
 			}
-            else {
-                for (int i = 0; i < loggers.size(); i++) {
-					ImGui::Text("%s: %f", loggers[i]->sectionName.c_str(), loggers[i]->history[loggers[i]->logCount]);
-				}
-			}
+            
 			ImGui::End();
         }
 
@@ -268,10 +316,8 @@ namespace uranium {
     void Loop() {
         while (!isFinished()) {
             urnStart = std::chrono::system_clock::now();
-            LoggerBegin("Uranium");
             StartFrame();
             EndFrame();
-            LoggerEnd();
             std::chrono::duration<float> elapsed_seconds = std::chrono::system_clock::now() - urnStart;
             float sec = elapsed_seconds.count();
             deltaTime = sec;

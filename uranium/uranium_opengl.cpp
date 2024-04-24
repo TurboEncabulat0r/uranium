@@ -24,7 +24,7 @@ int16_t URANIUM_RENDER_HEIGHT = 720;
 namespace uranium {
 
 	static GLFWwindow* window;
-
+    static int batchSize = 400;
     // Vertex shader source code
     const char* vertexShaderSource = "shaders/vertex.glsl";
     // Fragment shader source code
@@ -197,7 +197,7 @@ namespace uranium {
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,  sizeof(vertex), (void*)(sizeof(vec3)));
         glEnableVertexAttribArray(1);
 
-        defaultTexture = GenerateColorTexture();
+        defaultTexture = loadTexture("textures/capybara.jpg");
 
         std::string vertex = loadShader(vertexShaderSource);
         std::string fragment = loadShader(fragmentShaderSource);
@@ -214,15 +214,18 @@ namespace uranium {
         q1 = new quad();
         q1->renderByDefault = false;
 
-        q1->position = vec3(0, 0.2, 0);
-
+        q1->setPosition(vec3(0, 0.2f, 0));
+        q1->setScale(vec3(0.5f, -0.5, 0.5f));
+        q1->setRotation(vec3(0, 180, 0));
         fullscreenquad = Uranium_GetFullscreenQuad(720, 980);
         fullscreenquad->renderByDefault = false;
 
         testt = new triangle();
         testt->color = vec3(1, 0, 0);
         testt->setPosition(vec3(0, 0, 0));
-        testt->scale = (vec3(0.4f, 0.4f, 0.4f));
+        testt->setScale(vec3(0.4f, 0.4f, 0.4f));
+
+        
     }
 
     bool isFinished() {
@@ -234,20 +237,19 @@ namespace uranium {
         LoggerBegin("RenderTriangles");
 
         std::vector<tri> tris = Uranium_RenderTriangles();
-        for (int i = 0; i < tris.size(); i++) {
-            addTri(tris[i]);
-            //log(tris[i]);
-            //log(&tris[i]);
-        }
-        LoggerEnd();
+        triangles.insert(triangles.end(), tris.begin(), tris.end());
+        LoggerEnd("RenderTriangles");
 
     }
 
     void imgui() {
         ImGui::Begin("Uranium OpenGL impl");
         ImGui::Text("tris: %d", triangles.size());
-        ImGui::Text("vertex buffer: %d", vertexBuffer);
-        ImGui::Text("vertex array: %d", vertexarray);
+        ImGui::Text("batches: %d", batches.size());
+        ImGui::Text("fps: %f", ImGui::GetIO().Framerate);
+        // editor for batch size
+
+        ImGui::InputInt("Batch size", &batchSize);
         ImGui::End();
     }
 
@@ -320,7 +322,7 @@ namespace uranium {
         std::vector<triBatch> batches = {};
 		std::vector<tri> currentBatch = {};
         for (int i = 0; i < triangles.size(); i++) {
-            if (currentBatch.size() == 400) {
+            if (currentBatch.size() == batchSize) {
 				batches.push_back(triBatch(currentBatch));
 				currentBatch.clear();
 			}
@@ -424,11 +426,17 @@ namespace uranium {
         }
     }
 
+    float rot;
+
     void U_EndFrameInternal() {
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
 
         ImGUIEndFrame();
+
+        q1->setRotation(vec3(rot / 3, rot, 0));
+        rot += 0.1f;
+
 
 
         glBindFramebuffer(GL_FRAMEBUFFER, offscreenFramebuffer);
@@ -440,15 +448,18 @@ namespace uranium {
         else
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+        DrawQuadImmedate(q1, defaultTexture);
+
         //DrawTriangles(); 
         LoggerBegin("DrawBatches");
         for (int i = 0; i < batches.size(); i++) {
 			drawBatch(batches[i]);
 		}
-        LoggerEnd();
 
-        DrawQuadImmedate(q1, q1Texture);
-        drawTriImmediate(testt->getTransformedTris()[0], q1Texture);
+        LoggerEnd("DrawBatches");
+
+        
+        //drawTriImmediate(testt->getTransformedTris()[0], q1Texture);
 
         ImGUIDraw();
 
@@ -462,7 +473,7 @@ namespace uranium {
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
-        LoggerEnd();
+        LoggerEnd("Render");
     }
 
     void U_ShutdownInternal() {

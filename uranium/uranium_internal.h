@@ -72,7 +72,14 @@ namespace uranium {
     #define URANIUM_VERTEX_SIZE sizeof(float) * 6
 
     class renderable {
+
     public:
+        vec3 position;
+        vec3 scale;
+        vec3 rotation;
+        glm::mat4 translation = glm::mat4(1.0f);
+
+        vec3 color;
 
         std::vector<tri> tris;
         bool renderByDefault = true;
@@ -83,7 +90,18 @@ namespace uranium {
 
         virtual std::vector<tri> getTransformedTris();
 
+        void setPosition(vec3 pos);
+
+        void setScale(vec3 scale);
+
+        void setRotation(vec3 rotation);
+
+        void setColor(vec3 color);
+
+        void computeTranslation();
+
         virtual void* getData();
+        glm::mat4 getTranslation();
     };
 
     struct texture {
@@ -97,32 +115,31 @@ namespace uranium {
 
     class primitive : public renderable {
     public:
-        vec3 position;
-        vec3 scale;
-        vec3 rotation;
-        vec3 color;
+
 
         bool getAbsolute = false;
 
 
         primitive();
 
-        void setPosition(vec3 pos);
-
-        void setScale(vec3 scale);
-
-        void setRotation(vec3 rotation);
 
         void* getData();
 
         std::vector<tri> getTransformedTris();
 
-        glm::mat4 getTransform();
+
     };
 
     class quad : public primitive {
     public:
         quad();
+    };
+
+    class cube : public primitive {
+    public:
+        quad* faces[6];
+        cube();
+
     };
 
     class triangle : public primitive {
