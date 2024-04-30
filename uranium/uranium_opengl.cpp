@@ -125,108 +125,8 @@ namespace uranium {
         return t;
 	}
 
+    Camera* c;
 
-    int InitializeWindow(const char* name) {
-
-        glfwSetErrorCallback(glfw_error_callback);
-        if (!glfwInit())
-            return -1;
-
-        const char* glsl_version = "#version 330";
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-        /* Create a windowed mode window and its OpenGL context */
-        window = glfwCreateWindow(URANIUM_RENDER_WIDTH, URANIUM_RENDER_HEIGHT, name, nullptr, nullptr);
-        if (window == nullptr)
-            return 1;
-        
-
-        /* Make the window's context current */
-        glfwMakeContextCurrent(window);
-        glfwSwapInterval(0); // Enable vsync
-        InitializeImGUI(window, glsl_version);
-        GLenum err = glewInit();
-        if (!err) {}
-        else
-        {
-            if (GLEW_VERSION_3_3) {
-				std::cout << "OpenGL 3.3 is supported" << std::endl;
-			}
-            else {
-				std::cerr << "OpenGL 3.3 is not supported" << std::endl;
-				return 0;
-			}
-
-            std::cout << glewGetErrorString(err) << std::endl;
-
-            std::cerr << "Failed to initialize GLEW" << std::endl;
-            return 0;
-        }
-
-        // setup vertex array
-        glGenBuffers(1, &vertexBuffer);
-        glGenVertexArrays(1, &vertexarray);
-
-        glGenFramebuffers(1, &offscreenFramebuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, offscreenFramebuffer);
-
-        glGenBuffers(1, &ibo);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-
-        offscreenTexture = new texture(0);
-        glGenTextures(1, &offscreenTexture->id);
-        glBindTexture(GL_TEXTURE_2D, offscreenTexture->id);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, URANIUM_RENDER_WIDTH, URANIUM_RENDER_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, offscreenTexture->id, 0);
-
-        // setup vertex buffer
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glBindVertexArray(vertexarray);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-        
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0);
-        glEnableVertexAttribArray(0);
-        // color attribute
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,  sizeof(vertex), (void*)(sizeof(vec3)));
-        glEnableVertexAttribArray(1);
-
-        defaultTexture = loadTexture("textures/capybara.jpg");
-
-        std::string vertex = loadShader(vertexShaderSource);
-        std::string fragment = loadShader(fragmentShaderSource);
-        const char* vxSource = vertex.c_str();
-        const char* fgSource = fragment.c_str();
-
-        if (vxSource == nullptr || fgSource == nullptr) {
-            std::cout << "shader loading failed" << std::endl;
-            return 0;
-        }
-       
-        shaderProgram = createShaderProgram(vxSource, fgSource);
-        q1Texture = loadTexture("textures/test.jpg");
-        q1 = new quad();
-        q1->renderByDefault = false;
-
-        q1->setPosition(vec3(0, 0.2f, 0));
-        q1->setScale(vec3(0.5f, -0.5, 0.5f));
-        q1->setRotation(vec3(0, 180, 0));
-        fullscreenquad = Uranium_GetFullscreenQuad(720, 980);
-        fullscreenquad->renderByDefault = false;
-
-        testt = new triangle();
-        testt->color = vec3(1, 0, 0);
-        testt->setPosition(vec3(0, 0, 0));
-        testt->setScale(vec3(0.4f, 0.4f, 0.4f));
-
-        
-    }
 
     bool isFinished() {
 		return glfwWindowShouldClose(window);
@@ -285,7 +185,7 @@ namespace uranium {
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(sizeof(vec3) * 2));
         glEnableVertexAttribArray(2);
 
-        glBindTexture(GL_TEXTURE_2D, q1Texture->id);
+        glBindTexture(GL_TEXTURE_2D, defaultTexture->id);
 
         // Draw elements using the index buffer
         glDrawElements(GL_TRIANGLES, batch.tris.size() * 3, GL_UNSIGNED_INT, 0);
@@ -319,6 +219,7 @@ namespace uranium {
     }
 
     std::vector<triBatch> cookBatches() {
+        LoggerBegin("Cook Batches");
         std::vector<triBatch> batches = {};
 		std::vector<tri> currentBatch = {};
         for (int i = 0; i < triangles.size(); i++) {
@@ -331,20 +232,57 @@ namespace uranium {
         if (currentBatch.size() > 0) {
 			batches.push_back(triBatch(currentBatch));
 		}
+        LoggerEnd("Cook Batches");
 		return batches;
     }
 
 
+    void addKeyboardCallback(GLFWkeyfun f) {
+        glfwSetKeyCallback(window, f);
+    }
+
+    void keyDown(GLFWwindow *w, int k, int seconds, int action, int mods) {
+        if (k == 'A') {
+            c->position += glm::vec3(0.05, 0, 0);
+            
+        }
+        if (k == 'D') {
+            c->position += glm::vec3(-0.05, 0, 0);
+        }
+
+        if (k == 'W') {
+			c->position += glm::vec3(0, 0, 0.05);
+		}
+        if (k == 'S') {
+            c->position += glm::vec3(0, 0, -0.05);
+        }
+
+        if (k == 'Q') {
+			c->position += glm::vec3(0, 0.05, 0);
+		}
+
+        if (k == 'E') {
+			c->position += glm::vec3(0, -0.05, 0);
+		}
+
+        if (k == 'R') {
+			c->rotation += glm::vec3(0, 0.05, 0);
+		}
+
+        if (k == 'F') {
+			c->rotation += glm::vec3(0, -0.05, 0);
+		}
+    }
 
     void U_StartFrameInternal() {
         glfwPollEvents();
 
         LoggerBegin("Render");
+        
 
         ImGUIStartFrame();
 
         RenderTriangles();
-        batches.clear();
         batches = cookBatches();
         imgui();
     }
@@ -429,39 +367,48 @@ namespace uranium {
     float rot;
 
     void U_EndFrameInternal() {
+        
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
 
         ImGUIEndFrame();
 
-        q1->setRotation(vec3(rot / 3, rot, 0));
-        rot += 0.1f;
+        
+        q1->setRotation(vec3(0, rot, 0));
+        rot += 0.01f;
 
-
-
+        c->Update();
+       // c->position = c->position + glm::vec3(0.03f, 0, 0);
+        
         glBindFramebuffer(GL_FRAMEBUFFER, offscreenFramebuffer);
+        LoggerBegin("Initial Draw");
         glViewport(0, 0, URANIUM_RENDER_WIDTH, URANIUM_RENDER_HEIGHT);
+
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         if (U_IsWireframe())
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         else
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-        DrawQuadImmedate(q1, defaultTexture);
+        
 
         //DrawTriangles(); 
         LoggerBegin("DrawBatches");
         for (int i = 0; i < batches.size(); i++) {
 			drawBatch(batches[i]);
 		}
-
         LoggerEnd("DrawBatches");
 
-        
+        //DrawQuadImmedate(q1, defaultTexture);
         //drawTriImmediate(testt->getTransformedTris()[0], q1Texture);
 
-        ImGUIDraw();
+        
+
+        LoggerEnd("Initial Draw");
+
+        LoggerBegin("FrameBuffer draw");
 
         // bind to default framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -470,10 +417,119 @@ namespace uranium {
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
 		glClear(GL_COLOR_BUFFER_BIT);
         DrawQuadImmedate(fullscreenquad, offscreenTexture);
+        ImGUIDraw();
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
+        LoggerEnd("FrameBuffer draw");
+
         LoggerEnd("Render");
+        
+    }
+
+    int InitializeWindow(const char* name) {
+
+        
+
+        glfwSetErrorCallback(glfw_error_callback);
+        if (!glfwInit())
+            return -1;
+
+        const char* glsl_version = "#version 330";
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+        /* Create a windowed mode window and its OpenGL context */
+        window = glfwCreateWindow(URANIUM_RENDER_WIDTH, URANIUM_RENDER_HEIGHT, name, nullptr, nullptr);
+        if (window == nullptr)
+            return 1;
+
+
+        /* Make the window's context current */
+        glfwMakeContextCurrent(window);
+        glfwSwapInterval(1); // Enable vsync
+        InitializeImGUI(window, glsl_version);
+        GLenum err = glewInit();
+        if (!err) {}
+        else
+        {
+            if (GLEW_VERSION_3_3) {
+                std::cout << "OpenGL 3.3 is supported" << std::endl;
+            }
+            else {
+                std::cerr << "OpenGL 3.3 is not supported" << std::endl;
+                return 0;
+            }
+
+            std::cout << glewGetErrorString(err) << std::endl;
+
+            std::cerr << "Failed to initialize GLEW" << std::endl;
+            return 0;
+        }
+
+        // setup vertex array
+        glGenBuffers(1, &vertexBuffer);
+        glGenVertexArrays(1, &vertexarray);
+
+        glGenFramebuffers(1, &offscreenFramebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, offscreenFramebuffer);
+
+        glGenBuffers(1, &ibo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
+        offscreenTexture = new texture(0);
+        glGenTextures(1, &offscreenTexture->id);
+        glBindTexture(GL_TEXTURE_2D, offscreenTexture->id);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, URANIUM_RENDER_WIDTH, URANIUM_RENDER_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, offscreenTexture->id, 0);
+
+        // setup vertex buffer
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindVertexArray(vertexarray);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0);
+        glEnableVertexAttribArray(0);
+        // color attribute
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(sizeof(vec3)));
+        glEnableVertexAttribArray(1);
+
+        defaultTexture = loadTexture("textures/capybara.jpg");
+
+        std::string vertex = loadShader(vertexShaderSource);
+        std::string fragment = loadShader(fragmentShaderSource);
+        const char* vxSource = vertex.c_str();
+        const char* fgSource = fragment.c_str();
+
+        if (vxSource == nullptr || fgSource == nullptr) {
+            std::cout << "shader loading failed" << std::endl;
+            return 0;
+        }
+
+        shaderProgram = createShaderProgram(vxSource, fgSource);
+        q1Texture = loadTexture("textures/test.jpg");
+        q1 = new quad();
+        q1->renderByDefault = false;
+
+        q1->setPosition(vec3(0, 0.2f, 0));
+        q1->setScale(vec3(0.5f, -0.5, 0.5f));
+        q1->setRotation(vec3(0, 180, 0));
+        fullscreenquad = Uranium_GetFullscreenQuad(720, 980);
+        fullscreenquad->renderByDefault = false;
+
+        testt = new triangle();
+        testt->color = vec3(1, 0, 0);
+        testt->setPosition(vec3(0, 0, 0));
+        testt->setScale(vec3(0.4f, 0.4f, 0.4f));
+        addKeyboardCallback(keyDown);
+
+        c = new Camera();
     }
 
     void U_ShutdownInternal() {

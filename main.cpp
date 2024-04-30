@@ -21,10 +21,10 @@ float randomFloat(float min, float max) {
 	std::uniform_real_distribution<float> dis(min, max);
 	return dis(gen);
 }
-int num = 0;
+int num = 10000;
 void onImgui() {
 	// adds a slider to change the number of triangles
-	ImGui::SliderInt("Number of Triangles", &num, 10, 25000);
+	ImGui::SliderInt("Number of Triangles", &num, 10, 100000);
 }
 
 uranium::vec3 getRandomPos() {
@@ -62,6 +62,7 @@ void onRender()
 		uranium::addRenderable(tri);
 	}
 }
+
 
 int main(void)
 {

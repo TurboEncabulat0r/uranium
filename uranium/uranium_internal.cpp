@@ -12,9 +12,13 @@ namespace uranium {
     extern bool isFullscreen = false;
     extern bool isVsync = false;
 
+    static glm::mat4 modelTransform = glm::mat4(1.0f);
+    static glm::mat4 viewTransform = glm::mat4(1.0f);
+    static glm::mat4 globalProjection = glm::mat4(1.0f);
+
+    static Camera* mainCamera;
 
 #pragma region uranium_math
-
 
     vec3::vec3(float x, float y, float z) : x(x), y(y), z(z) {}
 
@@ -175,6 +179,30 @@ namespace uranium {
         t.verts[2].uv = uv3;
     }
 
+    Camera::Camera() {
+        position = glm::vec3(0, 0, 0);
+		rotation = glm::vec3(0, 0, 0);
+        view = glm::mat4(1.0f);
+        projection = glm::perspective(glm::radians(fov), 16.0f / 9.0f, _near, _far);
+		fov = 90;
+        mainCamera = this;
+    }
+
+    void setGlobalProjection(glm::mat4 projection) {
+		globalProjection = projection;
+	}
+
+    void Camera::Update() {
+        view = glm::mat4(1.0f);
+        view = glm::rotate(view, glm::radians(rotation.x), glm::vec3(1, 0, 0));
+        view = glm::rotate(view, glm::radians(rotation.y), glm::vec3(0, 1, 0));
+        view = glm::rotate(view, glm::radians(rotation.z), glm::vec3(0, 0, 1));
+        view = glm::translate(view, -position);
+
+        projection = glm::perspective(glm::radians(fov), 16.0f / 9.0f, _near, _far);
+        setGlobalProjection(projection);
+	}
+
     void renderable::addTri(tri t) {
         setTriColor(t, color);
 
@@ -223,18 +251,22 @@ namespace uranium {
 	}
 
     glm::mat4 renderable::getTranslation() {
-        computeTranslation();
+        //computeTranslation();
 		return this->translation;
 	}
 
     void renderable::computeTranslation() {
-        this->translation = glm::mat4(1.0f);
+        glm::mat4* t;
+        t = &this->translation;
+        *t = glm::mat4(1.0f);
         // apply scale
-        mat4SetScale(this->translation, scale);
+        *t = glm::scale(*t, glm::vec3(scale.x, scale.y, scale.z));
         // apply rotation
-        mat4SetRotation(this->translation, rotation);
+        *t = glm::rotate(*t, glm::radians(rotation.x), glm::vec3(1, 0, 0));
+        *t = glm::rotate(*t, glm::radians(rotation.y), glm::vec3(0, 1, 0));
+        *t = glm::rotate(*t, glm::radians(rotation.z), glm::vec3(0, 0, 1));
         // apply position
-        mat4SetPosition(this->translation, position);
+        *t = glm::translate(*t, glm::vec3(position.x, position.y, position.z));
 	}
 
     void ApplyTranslation(const glm::mat4& t, tri& tri) {
@@ -268,7 +300,7 @@ namespace uranium {
         // applies translation to each triangle
         for (tri t : tris) {
 			tri tCopy = t;
-			ApplyTranslation(translation, tCopy);
+			ApplyTranslation(this->getTranslation(), tCopy);
 			transformedTris.push_back(tCopy);
 		}
         return transformedTris;
@@ -325,6 +357,16 @@ namespace uranium {
 		float crossProduct = edge1.x * edge2.y - edge1.y * edge2.x;
 		return crossProduct >= 0; // Convex if cross product is non-negative
 	}
+
+
+    
+    bool shouldBeCulled(const tri& t, Camera* c) {
+        // checks if the triangle is in the view frustum
+        for (int i = 0; i < 3; i++) {
+
+		}
+        return true;
+	}
     
     std::vector<renderable*> getRenderables() {
 		return renderables;
@@ -337,17 +379,19 @@ namespace uranium {
             if (!r->renderByDefault)
                 continue;
 
-            const glm::mat4& translationMatrix = r->getTranslation(); // Cache translation
+            //const glm::mat4& translationMatrix = r->getTranslation(); // Cache translation
 
             for (tri& t : r->tris) {
-
-                tri tCopy = t; // Copy the triangle
-                ApplyTranslation(translationMatrix, tCopy); // Apply translation to each triangle
-                tris.push_back(tCopy); // Append the transformed triangle to the result
+                
+                tris.push_back(t);
+                //ApplyTranslation(translationMatrix, tris.back());
             }
-
-            //tris.insert(tris.end(), r->tris.begin(), r->tris.end()); // Append triangles to the result
         }
+
+        //for (int i = 0; i < tris.size(); i++) {
+            //ApplyTranslation(globalProjection, tris[i]);
+		//}
+
 
         return tris;
     }

@@ -72,6 +72,12 @@
     <ClCompile Include="uranium\shader.cpp">
       <Filter>Source Files\uranium\components</Filter>
     </ClCompile>
+    <ClCompile Include="uranium\uranium_culled.cpp">
+      <Filter>Source Files\uranium</Filter>
+    </ClCompile>
+    <ClCompile Include="uranium\uranium_rendering.cpp">
+      <Filter>Source Files\uranium</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="uranium\uranium.h">
@@ -121,6 +127,9 @@
     </ClInclude>
     <ClInclude Include="uranium\shader.h">
       <Filter>Header Files\components</Filter>
+    </ClInclude>
+    <ClInclude Include="uranium\uranium_culled.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

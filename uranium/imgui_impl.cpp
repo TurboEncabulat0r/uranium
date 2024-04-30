@@ -2,6 +2,7 @@
 
 GLFWwindow* win;
 
+
 void InitializeImGUI(GLFWwindow* w, const char* glsl_version){
     win = w;
     // Setup Dear ImGui context

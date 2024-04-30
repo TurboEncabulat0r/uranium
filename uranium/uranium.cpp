@@ -315,12 +315,14 @@ namespace uranium {
     
     void Loop() {
         while (!isFinished()) {
+            LoggerBegin("Uranium");
             urnStart = std::chrono::system_clock::now();
             StartFrame();
             EndFrame();
             std::chrono::duration<float> elapsed_seconds = std::chrono::system_clock::now() - urnStart;
             float sec = elapsed_seconds.count();
             deltaTime = sec;
+            LoggerEnd("Uranium");
 		}
 	}
 
@@ -330,5 +332,10 @@ namespace uranium {
 
     void Shutdown() {
         U_ShutdownInternal();
-	}
+    }
+
+
+    void handleKeyEvent(const char k) {
+
+    }
 }

@@ -121,7 +121,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_BUILD</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)include\glew_include;$(ProjectDir)include\glfw_include;$(ProjectDir)include\imgui_include;$(ProjectDir)include\glm_include;H:\libraries\glfw-3.4.bin.WIN64\include;H:\libraries\glew-2.1.0\include;H:\libraries\imgui-master;H:\libraries\glm-1.0.1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include\glew_include;$(ProjectDir)include\glfw_include;$(ProjectDir)include\imgui_include;$(ProjectDir)include\glm_include;$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -144,8 +144,10 @@
     <ClCompile Include="uranium\imgui_impl.cpp" />
     <ClCompile Include="uranium\shader.cpp" />
     <ClCompile Include="uranium\uranium.cpp" />
+    <ClCompile Include="uranium\uranium_culled.cpp" />
     <ClCompile Include="uranium\uranium_internal.cpp" />
     <ClCompile Include="uranium\uranium_opengl.cpp" />
+    <ClCompile Include="uranium\uranium_rendering.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\imgui_include\backends\imgui_impl_glfw.h" />
@@ -162,6 +164,7 @@
     <ClInclude Include="uranium\imgui_impl.h" />
     <ClInclude Include="uranium\shader.h" />
     <ClInclude Include="uranium\uranium.h" />
+    <ClInclude Include="uranium\uranium_culled.h" />
     <ClInclude Include="uranium\uranium_internal.h" />
     <ClInclude Include="uranium\uranium_opengl.h" />
   </ItemGroup>
