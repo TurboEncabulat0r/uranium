@@ -17,7 +17,7 @@
 #include "stb_image.h"
 
 #include "shader.h"
-
+#include "camera.h"
 int16_t URANIUM_RENDER_WIDTH = 1280;
 int16_t URANIUM_RENDER_HEIGHT = 720;
 
@@ -30,8 +30,8 @@ namespace uranium {
     // Fragment shader source code
     const char* fragmentShaderSource = "shaders/fragment.glsl";
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    Shader* shader;
 
-    GLuint shaderProgram;
     GLuint vertexBuffer;
     GLuint vertexarray;
     GLuint ibo;
@@ -41,11 +41,6 @@ namespace uranium {
     texture* offscreenTexture;
 
     texture* defaultTexture;
-
-    triangle* testt;
-
-    quad* q1;
-    texture* q1Texture;
 
     std::vector<tri> triangles = {};
 
@@ -125,9 +120,6 @@ namespace uranium {
         return t;
 	}
 
-    Camera* c;
-
-
     bool isFinished() {
 		return glfwWindowShouldClose(window);
     }
@@ -147,7 +139,6 @@ namespace uranium {
         ImGui::Text("tris: %d", triangles.size());
         ImGui::Text("batches: %d", batches.size());
         ImGui::Text("fps: %f", ImGui::GetIO().Framerate);
-        // editor for batch size
 
         ImGui::InputInt("Batch size", &batchSize);
         ImGui::End();
@@ -157,7 +148,7 @@ namespace uranium {
         glBindVertexArray(vertexarray);
 
         // Use the shader program
-        glUseProgram(shaderProgram);
+        shader->use();
 
         // Bind the vertex buffer
         glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -193,7 +184,7 @@ namespace uranium {
 
     void DrawTriangles() {
         
-        glUseProgram(shaderProgram);
+        shader->use();
         glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
         glBindVertexArray(vertexarray);
 
@@ -242,37 +233,10 @@ namespace uranium {
     }
 
     void keyDown(GLFWwindow *w, int k, int seconds, int action, int mods) {
-        if (k == 'A') {
-            c->position += glm::vec3(0.05, 0, 0);
-            
-        }
-        if (k == 'D') {
-            c->position += glm::vec3(-0.05, 0, 0);
-        }
 
-        if (k == 'W') {
-			c->position += glm::vec3(0, 0, 0.05);
-		}
-        if (k == 'S') {
-            c->position += glm::vec3(0, 0, -0.05);
-        }
-
-        if (k == 'Q') {
-			c->position += glm::vec3(0, 0.05, 0);
-		}
-
-        if (k == 'E') {
-			c->position += glm::vec3(0, -0.05, 0);
-		}
-
-        if (k == 'R') {
-			c->rotation += glm::vec3(0, 0.05, 0);
-		}
-
-        if (k == 'F') {
-			c->rotation += glm::vec3(0, -0.05, 0);
-		}
     }
+
+    
 
     void U_StartFrameInternal() {
         glfwPollEvents();
@@ -286,15 +250,6 @@ namespace uranium {
         batches = cookBatches();
         imgui();
     }
-
-    void drawTriImmediate(tri t) {
-		glBindVertexArray(vertexarray);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-
-		glBufferData(GL_ARRAY_BUFFER, sizeof(tri), &t, GL_STATIC_DRAW);
-
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-	}
 
     void drawTriImmediate(tri t, texture* tex) {
 		glBindVertexArray(vertexarray);
@@ -315,13 +270,35 @@ namespace uranium {
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
 
+    void DrawTriangleArrays(void* data, int size, texture* t, Shader s) {
+        glBindVertexArray(vertexarray);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+
+		glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+
+		// sets pointers for the vertex attributes
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(sizeof(vec3)));
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(sizeof(vec3) * 2));
+		glEnableVertexAttribArray(2);
+
+        s.use();
+
+        for (int i = 0; i < size; i++) {
+            glBindTexture(GL_TEXTURE_2D, t->id);
+            glDrawArrays(GL_TRIANGLES, i * 3, 3);
+        }
+    }
+
     void DrawQuadImmedate(quad* q, texture* t) {
         if (t == nullptr) {
             log("Texture is null");
             return;
         }
 
-        glUseProgram(shaderProgram);
+        shader->use();
         glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
         glBindVertexArray(vertexarray);
 
@@ -350,7 +327,7 @@ namespace uranium {
     }
 
     void DrawQuadImmedate(quad* q) {
-        glUseProgram(shaderProgram);
+        shader->use();
         auto qudTris = q->getTransformedTris();
         for (int i = 0; i < qudTris.size(); i++) {
             glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -373,12 +350,7 @@ namespace uranium {
 
         ImGUIEndFrame();
 
-        
-        q1->setRotation(vec3(0, rot, 0));
-        rot += 0.01f;
-
-        c->Update();
-       // c->position = c->position + glm::vec3(0.03f, 0, 0);
+        Camera::main->Update();
         
         glBindFramebuffer(GL_FRAMEBUFFER, offscreenFramebuffer);
         LoggerBegin("Initial Draw");
@@ -392,39 +364,28 @@ namespace uranium {
         else
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-        
-
-        //DrawTriangles(); 
-        LoggerBegin("DrawBatches");
-        for (int i = 0; i < batches.size(); i++) {
-			drawBatch(batches[i]);
-		}
-        LoggerEnd("DrawBatches");
-
-        //DrawQuadImmedate(q1, defaultTexture);
-        //drawTriImmediate(testt->getTransformedTris()[0], q1Texture);
-
-        
-
         LoggerEnd("Initial Draw");
 
-        LoggerBegin("FrameBuffer draw");
 
         // bind to default framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glViewport(0, 0, display_w, display_h);
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
 		glClear(GL_COLOR_BUFFER_BIT);
+
+        // render framebuffer to quad
         DrawQuadImmedate(fullscreenquad, offscreenTexture);
+
+        // render imgui on top
         ImGUIDraw();
 
-        /* Swap front and back buffers */
+        // display the resuts
         glfwSwapBuffers(window);
-        LoggerEnd("FrameBuffer draw");
+
 
         LoggerEnd("Render");
-        
     }
 
     int InitializeWindow(const char* name) {
@@ -502,34 +463,24 @@ namespace uranium {
 
         defaultTexture = loadTexture("textures/capybara.jpg");
 
-        std::string vertex = loadShader(vertexShaderSource);
-        std::string fragment = loadShader(fragmentShaderSource);
-        const char* vxSource = vertex.c_str();
-        const char* fgSource = fragment.c_str();
+        shader = new Shader("shaders/vertex.glsl", "shaders/fragment.glsl");
 
-        if (vxSource == nullptr || fgSource == nullptr) {
-            std::cout << "shader loading failed" << std::endl;
-            return 0;
-        }
+        //std::string vertex = loadShader(vertexShaderSource);
+        //std::string fragment = loadShader(fragmentShaderSource);
+        //const char* vxSource = vertex.c_str();
+        //const char* fgSource = fragment.c_str();
 
-        shaderProgram = createShaderProgram(vxSource, fgSource);
-        q1Texture = loadTexture("textures/test.jpg");
-        q1 = new quad();
-        q1->renderByDefault = false;
+        //if (vxSource == nullptr || fgSource == nullptr) {
+        //    std::cout << "shader loading failed" << std::endl;
+        //    return 0;
+        //}
 
-        q1->setPosition(vec3(0, 0.2f, 0));
-        q1->setScale(vec3(0.5f, -0.5, 0.5f));
-        q1->setRotation(vec3(0, 180, 0));
+        //shaderProgram = createShaderProgram(vxSource, fgSource);
+
         fullscreenquad = Uranium_GetFullscreenQuad(720, 980);
         fullscreenquad->renderByDefault = false;
 
-        testt = new triangle();
-        testt->color = vec3(1, 0, 0);
-        testt->setPosition(vec3(0, 0, 0));
-        testt->setScale(vec3(0.4f, 0.4f, 0.4f));
         addKeyboardCallback(keyDown);
-
-        c = new Camera();
     }
 
     void U_ShutdownInternal() {

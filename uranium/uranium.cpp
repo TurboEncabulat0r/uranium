@@ -7,8 +7,9 @@
 #include "uranium_opengl.h"
 #include "imgui_impl.h"
 #include "cmath"
+#include "uranium_culled.h"
 
-#define LOGGER_HISTORY 40
+#define LOGGER_HISTORY 5
 
 namespace uranium {
     static uint16_t screenWidth = 1280;
@@ -69,6 +70,7 @@ namespace uranium {
     void Initialize() {
         if (InitializeWindow("Uranium")) {
             log("Window initialized");
+            rendering::Initialize();
         }
         else {
 			std::cerr << "Failed to initialize window" << std::endl;

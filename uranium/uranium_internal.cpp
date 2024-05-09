@@ -4,7 +4,7 @@
 #include "helpers.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
+#include "camera.h"
 namespace uranium {
 
     // global variables
@@ -15,8 +15,6 @@ namespace uranium {
     static glm::mat4 modelTransform = glm::mat4(1.0f);
     static glm::mat4 viewTransform = glm::mat4(1.0f);
     static glm::mat4 globalProjection = glm::mat4(1.0f);
-
-    static Camera* mainCamera;
 
 #pragma region uranium_math
 
@@ -179,29 +177,13 @@ namespace uranium {
         t.verts[2].uv = uv3;
     }
 
-    Camera::Camera() {
-        position = glm::vec3(0, 0, 0);
-		rotation = glm::vec3(0, 0, 0);
-        view = glm::mat4(1.0f);
-        projection = glm::perspective(glm::radians(fov), 16.0f / 9.0f, _near, _far);
-		fov = 90;
-        mainCamera = this;
-    }
+
 
     void setGlobalProjection(glm::mat4 projection) {
 		globalProjection = projection;
 	}
 
-    void Camera::Update() {
-        view = glm::mat4(1.0f);
-        view = glm::rotate(view, glm::radians(rotation.x), glm::vec3(1, 0, 0));
-        view = glm::rotate(view, glm::radians(rotation.y), glm::vec3(0, 1, 0));
-        view = glm::rotate(view, glm::radians(rotation.z), glm::vec3(0, 0, 1));
-        view = glm::translate(view, -position);
 
-        projection = glm::perspective(glm::radians(fov), 16.0f / 9.0f, _near, _far);
-        setGlobalProjection(projection);
-	}
 
     void renderable::addTri(tri t) {
         setTriColor(t, color);
@@ -298,7 +280,7 @@ namespace uranium {
         std::vector<tri> transformedTris = {};
 
         // applies translation to each triangle
-        for (tri t : tris) {
+        for (tri const t : tris) {
 			tri tCopy = t;
 			ApplyTranslation(this->getTranslation(), tCopy);
 			transformedTris.push_back(tCopy);
@@ -379,12 +361,12 @@ namespace uranium {
             if (!r->renderByDefault)
                 continue;
 
-            //const glm::mat4& translationMatrix = r->getTranslation(); // Cache translation
+            const glm::mat4& translationMatrix = r->getTranslation(); // Cache translation
 
             for (tri& t : r->tris) {
                 
                 tris.push_back(t);
-                //ApplyTranslation(translationMatrix, tris.back());
+                ApplyTranslation(translationMatrix, tris.back());
             }
         }
 

@@ -69,14 +69,17 @@
     <ClCompile Include="uranium\imgui_impl.cpp">
       <Filter>Source Files\uranium</Filter>
     </ClCompile>
-    <ClCompile Include="uranium\shader.cpp">
-      <Filter>Source Files\uranium\components</Filter>
-    </ClCompile>
     <ClCompile Include="uranium\uranium_culled.cpp">
       <Filter>Source Files\uranium</Filter>
     </ClCompile>
     <ClCompile Include="uranium\uranium_rendering.cpp">
       <Filter>Source Files\uranium</Filter>
+    </ClCompile>
+    <ClCompile Include="uranium\camera.cpp">
+      <Filter>Source Files\uranium\components</Filter>
+    </ClCompile>
+    <ClCompile Include="uranium\shader.cpp">
+      <Filter>Source Files\uranium\components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -130,6 +133,9 @@
     </ClInclude>
     <ClInclude Include="uranium\uranium_culled.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="uranium\camera.h">
+      <Filter>Header Files\components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -4,6 +4,9 @@
 
 #include "helpers.h"
 
+#define DEFAULT_VERTEX_PATH "shaders/default.vert"
+#define DEFAULT_FRAGMENT_PATH "shaders/default.frag"
+
 namespace uranium 
 {
 
@@ -72,6 +75,16 @@ namespace uranium
 		id = createShaderProgram(vShaderCode, fShaderCode);
 	}
 
+    Shader::Shader() {
+        std::string vertexCode = loadShader(DEFAULT_VERTEX_PATH);
+        std::string fragmentCode = loadShader(DEFAULT_FRAGMENT_PATH);
+
+        const char* vShaderCode = vertexCode.c_str();
+        const char* fShaderCode = fragmentCode.c_str();
+
+        id = createShaderProgram(vShaderCode, fShaderCode);
+    }
+
     void Shader::use() {
 		glUseProgram(id);
 	}
@@ -87,6 +100,14 @@ namespace uranium
     void Shader::setFloat(const std::string& name, float value) const {
 		glUniform1f(glGetUniformLocation(id, name.c_str()), value);
 	}
+
+    void Shader::setVec3(const std::string& name, float x, float y, float z) const {
+        glUniform1d(glGetUniformLocation(id, name.c_str()), x);
+    }
+
+    void Shader::setMat4(const std::string& name, const float* value) const {
+        glUniformMatrix4fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, value);
+    }
 
     void Shader::checkCompileErrors(unsigned int shader, std::string type) {
 		GLint success;
